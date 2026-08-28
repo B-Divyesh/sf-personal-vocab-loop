@@ -1,45 +1,57 @@
-# Personal Vocab Loop — adversarial review 2 handoff
+# Personal Vocab Loop — polish round 2 handoff
 
-## Status: FAIL
+## Status
 
-Completed a read-only adversarial review of source commit
-`4ffc19582d367f05c448612673a6712721954909` and the live product at
-<https://personal-vocab-loop.sociobot.in>. No product code was modified.
+Release candidate repaired and locally accepted. Production deployment and cold
+live verification are the remaining work-order steps.
 
-## Delivered
+## What changed
 
-- Wrote `.factory/review-2.md` with the cold mobile/desktop read, complete
-  landing and README copy audit, demo and storage exercise, claim matrix,
-  historical finding verification, structure/accessibility checks, missed
-  leverage assessment, and a FAIL verdict.
-- Rechecked all 19 findings from review 1 in both live behavior and source.
-  F-1-5 and F-1-13 remain half-fixed and are blocking again under their
-  original IDs.
-- Recorded nine new findings. F-2-1 is blocking because the declared
-  `demo-voice-cue` claim failed during `npm test`; F-2-2 through F-2-9 cover
-  unlisted claims and copy terminology.
+- Replaced the demo’s two-note sound with documented spoken Spanish synthetic
+  speech, stored in the isolated demo database and offline shell.
+- Stabilized backup import with a visible busy state, blocked navigation, and a
+  completion message; strengthened the voice claim with hash and duration proof.
+- Standardized the product language to “phrase” and the retrieval action to
+  “Recall.” Rewrote all review-2 copy findings and added a real free-core claim.
+- Preserved the pixel/demoscene private-memory-terminal identity while fixing
+  390 px and 200% text-size layout behavior.
+- Updated version 1.0.2, catalog copy, claims, demo notes, provenance, copy audit,
+  README, legal wording, 404 copy, and service-worker precache.
 
 ## Verification
 
-- Fresh clone: `/tmp/pvl-review2.YCHMFB/repo`; `npm ci` passed.
-- All 15 exact `.factory/claims.json` commands passed independently.
-- `npm test` failed with 31/32 Playwright tests passing; the failure was
-  `@claim:demo-voice-cue` after its backup import. Ten isolated repeats and a
-  later `npm run test:claims` passed, confirming an intermittent missing-wait
-  problem rather than clearing the observed failure.
-- `npm run typecheck`, `npm run lint`, and `npm run build` passed. `dist/` was
-  produced; app JavaScript was 10.49 kB gzip.
-- Live cold reads at 390×844 and 1440×900 passed the first-screen clarity gate.
-- Live demo isolation, Reset, Start for real, same-origin traffic, and offline
-  recall passed. The sample audio was confirmed in source to be two synthesized
-  tones rather than speech.
-- Live route/metadata/link/focus checks passed. `verify-url.sh` passed, and axe
-  reported zero violations on root, demo, Privacy, Terms, and the designed 404.
+- Clean clone: `/tmp/pvl-polish2-clean.Miyqgm/repo` at implementation commit
+  `0d3256f5a36a0c1988bd339f24146d349af2bd43`.
+- `npm ci`: pass, 0 vulnerabilities.
+- All 16 exact claim commands: pass independently.
+- `npm test`: pass, 4/4 unit and 35/35 browser tests. Two additional consecutive
+  working-tree runs also passed, including the formerly intermittent voice import.
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+- Output: `dist/`; JS 29.74 kB raw / 10.46 kB gzip; CSS 12.03 kB raw / 3.44 kB gzip.
+- Accessibility/privacy/offline: Playwright axe zero serious/critical issues in
+  both themes; same-origin privacy and offline demo claims pass; 390 px and 200%
+  text-size checks pass; reduced motion, keyboard, focus, and touch targets pass.
+- Local URL verifier: pass with no console errors, one h1, `lang=en`, main, and
+  complete image alt text.
+- Lighthouse local mobile: 100 Performance / 100 Accessibility / 100 Best
+  Practices / 100 SEO; LCP 1.5 s, CLS 0, TBT 10 ms.
+- Evidence and finding map: `.factory/polish-2.md` and
+  `.factory/evidence/polish-2/`.
 
-## Required next work
+## Run it
 
-Resolve every finding in `.factory/review-2.md`, especially the spoken sample,
-the unstable voice-backup claim test, and phrase/recall terminology. Then rerun
-the entire review from a clean clone. Do not treat the later passing claim run
-as sufficient evidence while the full-suite failure remains reproducible in
-the review record.
+```sh
+npm ci
+npm test
+npm run test:claims
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Demo: <https://personal-vocab-loop.sociobot.in/?demo=1>.
+
+## Known gaps
+
+Production deployment and post-deploy cold checks are pending. No product gap is
+known from the local or clean-clone acceptance pass.
