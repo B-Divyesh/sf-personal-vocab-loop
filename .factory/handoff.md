@@ -1,28 +1,43 @@
-# Personal Vocab Loop — adversarial review 1 handoff
+# Personal Vocab Loop — polish round 1 handoff
 
-## Status: FAIL
+## Status: PASS
 
-An adversarial first-read review was completed against commit `c415d7f` and the live site on 2026-08-28 UTC. No product code was changed. The full report is `.factory/review-1.md`.
+Repair commit `3d779bf9c2eece15daffd401d7b1a804440fde80` was pushed to `main` and
+deployed through the static work order on 2026-08-28 UTC. The live product is
+<https://personal-vocab-loop.sociobot.in>.
 
-## What was done
+## Delivered
 
-- Captured cold 390×844 and 1440×900 first screens before scrolling.
-- Audited every landing and README sentence, plus headings and actions.
-- Exercised the live demo, isolated storage, Reset, Start for real, same-origin networking, and offline recall after legal-page visits.
-- Ran all 14 claim commands separately from a fresh local clone and ran the full local test/build gates.
-- Crawled live routes and links; checked metadata, deep links, back navigation, focus, 404, visual identity, accessibility, and asset sizes.
-- Read all required historical review/polish/handoff artifacts; no earlier review or polish file exists.
+- Closed every F-1-1 through F-1-19 finding in `.factory/review-1.md`; see
+  `.factory/polish-1.md` for the finding-to-evidence map.
+- Added the one-click `/?demo=1` isolated entry, persistent demo banner/reset,
+  original offline replayable sample cue, and a tested cue backup round trip.
+- Made route notices focus-safe, made schedule dates deterministic, and made
+  recording privacy and the exact 10-second limit observable claim tests.
+- Completed 404 canonical metadata, plain-language copy, phrase terminology,
+  landing privacy limits, and the required catalog description.
 
-## Verification summary
+## Exact verification evidence
 
-- Clean-clone claim run: 14/14 passed.
-- Separate exact claim run: `recall-schedule` failed once by 1 ms, then passed on later runs; this is a blocking flaky gate.
-- `npm test`: Vitest 4/4 and Playwright 30/30 passed.
-- Typecheck, lint, and production build passed; `dist/` was produced.
-- Live `verify-url.sh` passed; live root axe scan found zero violations.
-- Live demo isolation/reset/exit and offline recall passed.
-- Live delayed-focus check failed: focus moved from the route `<h1>` to `<body>` when the four-second notice timer re-rendered the app.
+- Fresh clean clone `/tmp/pvl-clean.NMXTaq/repo`: `npm ci`, then every one of
+  the 15 exact commands in `.factory/claims.json` passed independently. This
+  includes `demo-voice-cue`, recording privacy, clock boundary, schedule,
+  backup, offline, and update claims.
+- Local gates: `npm run typecheck`, `npm run lint`, `npm run build`, and
+  `npm test` passed (Vitest 4/4; Playwright 32/32). Production output is `dist/`.
+- Production deploy: `/opt/fleet/lib/deploy-static.sh personal-vocab-loop dist`
+  succeeded (deployment id `7b950fc6-4ac1-43d6-a63e-b969b4a0bfe4`).
+- Live: `verify-url.sh https://personal-vocab-loop.sociobot.in` passed with
+  title, language, main landmark, image alt, and no console errors.
+- Live axe: zero violations on `/?demo=1`, `/privacy/`, `/terms/`, and the
+  designed unknown-route 404. The unknown URL returned HTTP 404 and its
+  canonical is `/404`; manifest MIME and immutable asset caching were checked.
+- Live Lighthouse (mobile): Performance **100**, Accessibility **100**; LCP
+  1,038 ms and CLS 0. The JSON report is in the polish evidence directory.
+- Cold live reset kept focus on “Words that sound like you” immediately and
+  after 4.3 seconds. Screenshots and raw checks are in
+  `.factory/evidence/polish-1/`.
 
-## What remains
+## Known gaps
 
-The report records 19 findings: five blocking, six major, and eight minor. Highest priority is stable route focus, deterministic schedule timing, complete recording/privacy claim coverage, and a demo sample with a playable voice cue. README claim registration/copy and the remaining structure metadata must also be corrected before another review can pass.
+None.
