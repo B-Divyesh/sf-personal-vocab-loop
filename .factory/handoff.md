@@ -1,39 +1,54 @@
-# Personal Vocab Loop — handoff
+# Personal Vocab Loop — verification handoff
 
-## Delivered
+## Status: FAIL
 
-- Offline, installable PWA with a hand-written versioned service worker,
-  manifest, 192/512 icons, and offline app-shell coverage.
-- Local IndexedDB phrase library: word, personal sentence, context tag,
-  optional 10-second MediaRecorder voice cue, search, deletion confirmation,
-  and keyboard paths (`N` to capture; Space reveals a review answer).
-- Transparent active-recall loop: 1, 3, 7, 14, and 30-day returns, with an
-  honest “need another pass” path that returns tomorrow.
-- JSON, CSV, and AES-GCM/PBKDF2 passphrase-encrypted local exports; imported
-  backups merge by newest update. No user data is transmitted.
-- One-time $12 Plus license flow through the Sociobot API contract: checkout,
-  URL token capture, daily background verification, offline optimistic cached
-  unlock, restore-token form, and a non-core shuffled recall order unlock.
-- Pixel/demoscene visual system and original Azure-generated illustration;
-  details and provenance are in `.factory/design.md`.
+Independent QA tested candidate
+`23b2e61f8f87548c500e9f30f2d9845a22742442` and
+`https://personal-vocab-loop.sociobot.in/` on 2026-08-28 UTC. The live
+deployment is byte-for-byte the candidate, but release acceptance fails.
+Full evidence is in `.factory/verification.md`.
 
-## Verification
+## What passed
 
-- `npm test` passes: 2 scheduling unit assertions, capture-to-blind-recall
-  browser flow, offline reload after service-worker install, and axe WCAG 2 A/
-  AA serious/critical check (0 violations).
-- `npm run build` passes and produces `dist/index.html` at the required root.
-- Production bundle: JS **7.35 KB gzip** (20.17 KB raw), CSS **3.07 KB gzip**
-  (10.14 KB raw), generated hero WebP **27 KB** — all under budget.
-- A direct Lighthouse CLI run was attempted with the installed Playwright
-  Chromium but the runner did not return a report in this container. The
-  automated axe run and browser/offline tests are included instead; run a
-  mobile Lighthouse audit in deployment before release.
+- Clean `npm ci`, `npm test` (2 unit assertions and 3 browser tests), and
+  `npm run build`; no lint script exists.
+- Core capture, persistence, blind recall, retry/advance, 10-second voice
+  recording, recording denial, JSON/CSV/encrypted export, import, and
+  license-token client behavior.
+- Live offline reload, installability checks, no load-time third-party
+  requests, no console/page errors, reduced motion, keyboard/focus smoke test,
+  and 0 serious/critical axe findings.
+- Bundle budgets. Mobile Lighthouse: Performance 95, Accessibility 100, Best
+  Practices 93, SEO 100; LCP 1.054 s and CLS 0.
 
-## Known gaps / next steps
+## Release blockers
 
-- Browser storage can be cleared by the user or OS; the app explains this and
-  provides backups, but cannot prevent it.
-- Voice recording depends on browser MediaRecorder/microphone availability.
-- There are no local notifications in v1; phrase readiness is visible whenever
-  the app is opened, intentionally avoiding pressure mechanics.
+1. Production checkout returns HTTP 404, so “Unlock Plus for $12” is broken.
+2. A 200-request verification-API burst returned 200× HTTP 200; no 429 or
+   `Retry-After` (observed threshold >200).
+3. `sw.js` and cache version are unchanged from the parent while `app.js`
+   changed. Exact upgrade testing showed installed clients remain on the old
+   JS and receive no update event.
+
+## Other defects
+
+- Whitespace-only required values save an empty phrase (medium).
+- At 390 px the square hero renders about 321×640 and pushes the heading/CTA
+  below the first viewport (medium).
+- Multiple mobile targets are under 44 px and nav spacing is 4 px (medium).
+- `hidden` encrypted export/import forms render visibly (low).
+- Security policy headers and immutable hashed-asset caching are absent (low).
+
+## Reverification
+
+From a clean checkout, run:
+
+```sh
+npm ci
+npm test
+npm run build
+```
+
+Then repeat live byte-hash comparison, parent-to-new service-worker upgrade,
+offline reload, desktop/390 px flows, axe in both themes, Lighthouse mobile,
+checkout GET, and an API burst that must yield 429 with `Retry-After`.
