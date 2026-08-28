@@ -1,0 +1,7 @@
+{
+  "slug": "personal-vocab-loop",
+  "title": "Personal Vocab Loop",
+  "artifact_class": "pwa-offline",
+  "smallest_useful_product": "Capture a word, personal sentence, optional 10-second recording, and context tag; prompt active recall and replay on a transparent schedule.",
+  "privacy": "Data and recordings remain on this device; encrypted export is available."
+}

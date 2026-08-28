@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Vocab Loop icon">
+  <rect width="512" height="512" rx="110" fill="#101427"/>
+  <path d="M110 287c72 65 212 66 294-67M104 210c102-101 251-89 311 30" fill="none" stroke="#71f1dc" stroke-width="22" stroke-linecap="square"/>
+  <path d="M256 108l86 148-86 148-86-148z" fill="#ffd56a" stroke="#71f1dc" stroke-width="18"/>
+  <path d="M190 256h132" stroke="#ff8c9d" stroke-width="18"/>
+</svg>
