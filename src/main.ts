@@ -79,7 +79,7 @@ async function refresh(routeChanged = false) {
   render(routeChanged);
 }
 function duePhrases() { const due = phrases.filter((phrase) => isDue(phrase.nextReview)); return reviewOrder.length ? due.sort((a, b) => reviewOrder.indexOf(a.id) - reviewOrder.indexOf(b.id)) : due; }
-function showNotice(message: string) { notice = message; render(); window.setTimeout(() => { notice = ''; render(); }, 4000); }
+function showNotice(message: string, renderNow = true) { notice = message; if (renderNow) render(); window.setTimeout(() => { notice = ''; render(); }, 4000); }
 function nav(active: View) {
   return `<header class="topbar"><a class="brand" href="${viewPath('library')}" data-view="library" aria-label="Personal Vocab Loop library"><span aria-hidden="true">◆</span> VOCAB LOOP</a><nav aria-label="Primary"><a href="${viewPath('library')}" data-view="library" ${active === 'library' ? 'aria-current="page"' : ''}>Library</a><a href="${viewPath('review')}" data-view="review" ${active === 'review' ? 'aria-current="page"' : ''}>Loop${duePhrases().length ? `<b>${duePhrases().length}</b>` : ''}</a><a href="${viewPath('settings')}" data-view="settings" ${active === 'settings' ? 'aria-current="page"' : ''}>Settings</a>${demoMode ? '' : '<a href="/demo">Demo</a>'}</nav></header>`;
 }
@@ -136,7 +136,7 @@ function bind() {
     event.preventDefault();
     void goTo(link.dataset.view as View);
   }));
-  document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', async () => { await resetDemo(); filter = ''; await goTo('library'); showNotice('Sample phrases reset.'); });
+  document.querySelector<HTMLButtonElement>('#reset-demo')?.addEventListener('click', async () => { await resetDemo(); filter = ''; showNotice('Sample phrases reset.', false); await goTo('library'); });
   document.querySelector<HTMLButtonElement>('#leave-demo')?.addEventListener('click', async () => { await discardDemo(); location.assign('/'); });
   document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => { filter = (event.target as HTMLInputElement).value; render(); document.querySelector<HTMLInputElement>('#search')?.focus(); });
   document.querySelectorAll<HTMLButtonElement>('.play').forEach((button) => button.addEventListener('click', () => void play(button.dataset.id!)));
@@ -154,7 +154,7 @@ function bind() {
     const data = new FormData(form);
     const now = new Date();
     const phrase: Phrase = { id: crypto.randomUUID(), word: values.word.trim(), sentence: values.sentence.trim(), tag: tag(String(data.get('tag'))), createdAt: now.toISOString(), updatedAt: now.toISOString(), reviewStage: 0, nextReview: nextReviewAt(0, now), audio: draftAudio };
-    try { await savePhrase(phrase); draftAudio = undefined; await goTo('library'); showNotice(`Saved “${phrase.word}”. Your first recall is tomorrow.`); } catch (caught) { error = caught instanceof Error ? caught.message : 'The phrase could not be saved.'; render(); }
+    try { await savePhrase(phrase); draftAudio = undefined; showNotice(`Saved “${phrase.word}”. Your first recall is tomorrow.`, false); await goTo('library'); } catch (caught) { error = caught instanceof Error ? caught.message : 'The phrase could not be saved.'; render(); }
   });
   document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('#word, #sentence').forEach((field) => field.addEventListener('input', () => field.setCustomValidity('')));
   document.querySelector<HTMLButtonElement>('#record')?.addEventListener('click', () => void toggleRecording());
