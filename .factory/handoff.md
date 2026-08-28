@@ -3,7 +3,7 @@
 ## Status
 
 Release-blocking findings from verifier commit `44a01ec68b977a7fca7b9bb7bc7c33fe1bcb273a`
-against candidate `52d13a373085104cc457f707709ca61ac73fad02` are repaired locally.
+against candidate `52d13a373085104cc457f707709ca61ac73fad02` are repaired and deployed.
 The artifact remains a static, offline-first PWA with `dist/index.html` at its root.
 
 ## Finding disposition
@@ -74,10 +74,41 @@ npx playwright test --grep @claim:demo-isolation
 
 ## Deployment and known gaps
 
-Deployment target: `https://personal-vocab-loop.sociobot.in` using
-`/opt/fleet/lib/deploy-static.sh personal-vocab-loop dist`.
+`/opt/fleet/lib/deploy-static.sh personal-vocab-loop dist` deployed product
+commit `d1f5931` to `https://personal-vocab-loop.sociobot.in` on 2026-08-28 UTC.
+The first upload attempt was rejected before activation because Azure forbids an
+explicit status code beside a 404 response-override rewrite. Commit `d1f5931`
+corrected that schema; the retry completed with deployment ID
+`7a3827a0-5070-44ce-9fae-52390c119edd`.
 
-Live deployment identity, headers, offline behavior, 404 status, accessibility,
-and Lighthouse evidence will be appended after deployment. No package-consumer
-check applies. The only external limitation is that new Plus sales stay paused
-until the factory registers and enables the product in the Sociobot catalog.
+Live evidence after deployment:
+
+- `/`, `/demo`, `/privacy/`, `/terms/`, manifest, worker, hashed JS/CSS, and
+  social preview return 200. `/not-a-real-route` returns the styled page with
+  HTTP 404.
+- Live SHA-256 values exactly match local `dist`: index
+  `82a03b1adece1af597bf9cad709a682ca469385ba0278d86d0f5089a635f7fb3`,
+  worker `3812b80b5cdd93549a43a6f19eae28559b05885a486401de0bc626946d76ee65`,
+  JS `ebaaaac5755582631c9deb986644bcdfa4c83cdd4b72335b9bf0dda2f0d1e112`,
+  and CSS `4768e639c4680cb0bd7324d09688297cbe9a0d9222a8c13f106ca0a8bbb0ee68`.
+- Live URL verification returned HTTP 200 in 639 ms, the expected title and
+  language, one `h1`, one `main`, complete image alt text, labeled buttons, and
+  no console errors.
+- A fresh 390×844 browser loaded three sample cards with 390 px scroll width,
+  minimum 44 px interactive targets, zero serious/critical axe violations, no
+  console errors, and only same-origin requests. Cache
+  `vocab-loop-8971fedbf001e3f8` controlled the page; offline reload preserved
+  the demo and recall remained usable.
+- Two live Lighthouse mobile runs scored 99/100 and 100/100 Performance; both
+  scored 100 Accessibility, Best Practices, and SEO. Both had 1.2 s LCP and
+  CLS 0; TBT was 100 ms and 0 ms.
+- Response policy includes CSP, HSTS, `nosniff`, frame denial, strict referrer,
+  COOP/CORP, and microphone-only permissions. Hashed assets are immutable for
+  one year; HTML revalidates and `sw.js` is `no-store`.
+- Settings displays **New purchases are paused**, contains no checkout link,
+  and retains the existing-license form. The external checkout endpoint still
+  returns 404, so the product makes no offer it cannot fulfill.
+
+No package-consumer check applies. The only external limitation is that new
+Plus sales stay paused until the factory registers and enables the product in
+the Sociobot catalog.
