@@ -161,6 +161,17 @@ test('view navigation uses real URLs, restores focus, updates metadata, and anno
   await expect(page.getByRole('heading', { name: 'Practice the phrases you want to say.' })).toBeFocused();
 });
 
+test('clearing a demo notice does not replace the focused route heading', async ({ page }) => {
+  await page.goto('/demo/settings');
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  const heading = page.getByRole('heading', { name: 'Words that sound like you' });
+  await expect(heading).toBeFocused();
+  await expect(page.locator('#notice-status')).toHaveText('Sample phrases reset.');
+  await page.waitForTimeout(4_300);
+  await expect(heading).toBeFocused();
+  await expect(page.locator('#notice-status')).toHaveText('');
+});
+
 test('wrong encrypted-backup passphrase keeps an operable retry in place', async ({ page }) => {
   await page.goto('/demo/settings');
   await page.getByRole('button', { name: 'Export encrypted backup' }).click();
@@ -192,6 +203,7 @@ test('legal, not-found, and demo routes carry the standard skeleton and metadata
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', /Personal Vocab Loop/);
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
   }
   await page.goto('/demo');
   await expect(page).toHaveTitle('Demo — Personal Vocab Loop');

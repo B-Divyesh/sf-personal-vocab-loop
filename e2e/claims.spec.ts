@@ -2,9 +2,9 @@ import { expect, test } from 'playwright/test';
 
 test('@claim:demo-isolation sample work is isolated and discarded', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('For language learners who want personal words to return when speaking.')).toBeVisible();
+  await expect(page.getByText('For language learners who want their own phrases to return when speaking.')).toBeVisible();
   await page.getByRole('link', { name: 'Try it with sample data' }).click();
-  await expect(page).toHaveURL('http://127.0.0.1:4173/demo');
+  await expect(page).toHaveURL('http://127.0.0.1:4173/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.locator('.phrase-card')).toHaveCount(3);
   expect(await page.evaluate(async () => (await indexedDB.databases()).map(({ name }) => name).sort())).toEqual(['demo:personal-vocab-loop', 'personal-vocab-loop']);
@@ -49,20 +49,49 @@ test('@claim:offline-reload demo remains usable offline after the first visit', 
   await expect(page).toHaveTitle('Demo — Personal Vocab Loop');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.getByText('llevarse bien')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play voice cue for llevarse bien' })).toBeVisible();
   await page.getByRole('link', { name: /^Loop/ }).click();
   await expect(page.getByText('What was your personal sentence?')).toBeVisible();
 });
 
-test('@claim:local-only demo flow sends no phrase data off origin', async ({ page }) => {
+test('@claim:local-only demo phrase and recording stay in its browser namespace', async ({ page }) => {
+  await page.addInitScript(() => {
+    class FakeRecorder {
+      state: 'inactive' | 'recording' = 'inactive';
+      mimeType = 'audio/webm';
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      constructor(_stream: MediaStream) {}
+      start() { this.state = 'recording'; }
+      stop() { this.state = 'inactive'; this.ondataavailable?.({ data: new Blob(['voice-secret-marker'], { type: this.mimeType }) }); this.onstop?.(); }
+    }
+    Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }) } });
+    Object.defineProperty(window, 'MediaRecorder', { value: FakeRecorder });
+  });
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
-  await page.goto('/demo/capture');
+  await page.goto('/?demo=1');
+  await page.getByRole('link', { name: 'Capture a phrase' }).click();
   await page.getByLabel(/word or phrase/i).fill('auf jeden Fall');
   await page.getByLabel(/your sentence/i).fill('Das mache ich auf jeden Fall morgen.');
+  await page.getByRole('button', { name: 'Record voice' }).click();
+  await page.getByRole('button', { name: 'Stop recording' }).click();
+  await expect(page.getByText('Voice cue attached — you can re-record it.')).toBeVisible();
   await page.getByRole('button', { name: /save to my loop/i }).click();
   await expect(page.getByRole('heading', { name: 'auf jeden Fall' })).toBeVisible();
   expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
   expect(requests.some((url) => url.includes('auf%20jeden') || url.includes('auf+jeden'))).toBe(false);
+  expect(await page.evaluate(async () => {
+    const record = async (database: string) => {
+      const request = indexedDB.open(database);
+      const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+      if (!db.objectStoreNames.contains('phrases')) return [];
+      const entry = db.transaction('phrases').objectStore('phrases').getAll();
+      const phrases = await new Promise<Array<{ word: string; audio?: Blob }>>((resolve, reject) => { entry.onsuccess = () => resolve(entry.result); entry.onerror = () => reject(entry.error); });
+      return Promise.all(phrases.map(async (phrase) => ({ word: phrase.word, audio: phrase.audio ? new TextDecoder().decode(await phrase.audio.arrayBuffer()) : '' })));
+    };
+    return { demo: await record('demo:personal-vocab-loop'), real: await record('personal-vocab-loop') };
+  })).toEqual({ demo: expect.arrayContaining([expect.objectContaining({ word: 'auf jeden Fall', audio: 'voice-secret-marker' })]), real: [] });
 });
 
 test('@claim:account-free core loop works without an account', async ({ page }) => {
@@ -208,21 +237,29 @@ test('@claim:backup-merge-newest imported IDs keep only the newest phrase versio
 test('@claim:recording-limit voice recording stops after 10 seconds', async ({ page }) => {
   await page.addInitScript(() => {
     const nativeSetTimeout = window.setTimeout.bind(window);
-    let recordingTimeout: TimerHandler | undefined;
-    Object.defineProperty(window, '__recordingDelay', { get: () => recordingTimeout ? 10_000 : 0 });
-    Object.defineProperty(window, '__runRecordingTimeout', { value: () => typeof recordingTimeout === 'function' && recordingTimeout() });
-    window.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
-      if (delay === 10_000) { recordingTimeout = handler; return 10_000; }
+    const nativeClearTimeout = window.clearTimeout.bind(window);
+    let now = 0;
+    let timerId = 0;
+    const timers = new Map<number, { due: number; handler: TimerHandler; args: unknown[] }>();
+    Object.defineProperty(window, '__advanceRecordingClock', { value: (milliseconds: number) => {
+      now += milliseconds;
+      for (const [id, timer] of [...timers]) {
+        if (timer.due <= now) { timers.delete(id); typeof timer.handler === 'function' && timer.handler(...timer.args); }
+      }
+    } });
+    window.setTimeout = ((handler: TimerHandler, delay = 0, ...args: unknown[]) => {
+      if (delay === 10_000) { timerId += 1; timers.set(timerId, { due: now + delay, handler, args }); return timerId; }
       return nativeSetTimeout(handler, delay, ...args);
     }) as typeof window.setTimeout;
+    window.clearTimeout = ((id?: number) => { if (id && timers.delete(id)) return; nativeClearTimeout(id); }) as typeof window.clearTimeout;
     class FakeRecorder {
       state = 'inactive';
       mimeType = 'audio/webm';
       ondataavailable: ((event: { data: Blob }) => void) | null = null;
       onstop: (() => void) | null = null;
       constructor(_stream: MediaStream) {}
-      start() { this.state = 'recording'; }
-      stop() { this.state = 'inactive'; this.ondataavailable?.({ data: new Blob(['voice'], { type: this.mimeType }) }); this.onstop?.(); }
+      start() { this.state = 'recording'; (window as unknown as { __recorderState: string }).__recorderState = this.state; }
+      stop() { this.state = 'inactive'; (window as unknown as { __recorderState: string }).__recorderState = this.state; this.ondataavailable?.({ data: new Blob(['voice'], { type: this.mimeType }) }); this.onstop?.(); }
     }
     Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }) } });
     Object.defineProperty(window, 'MediaRecorder', { value: FakeRecorder });
@@ -230,10 +267,46 @@ test('@claim:recording-limit voice recording stops after 10 seconds', async ({ p
   await page.goto('/demo/capture');
   await page.getByRole('button', { name: 'Record voice' }).click();
   await expect(page.getByText('Recording… stops automatically in 10 seconds.')).toBeVisible();
-  expect(await page.evaluate(() => (window as unknown as { __recordingDelay: number }).__recordingDelay)).toBe(10_000);
   await expect(page.getByRole('button', { name: 'Stop recording' })).toBeVisible();
-  await page.evaluate(() => (window as unknown as { __runRecordingTimeout: () => void }).__runRecordingTimeout());
+  await page.evaluate(() => (window as unknown as { __advanceRecordingClock: (milliseconds: number) => void }).__advanceRecordingClock(9_999));
+  expect(await page.evaluate(() => (window as unknown as { __recorderState: string }).__recorderState)).toBe('recording');
+  await expect(page.getByRole('button', { name: 'Stop recording' })).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __advanceRecordingClock: (milliseconds: number) => void }).__advanceRecordingClock(1));
+  expect(await page.evaluate(() => (window as unknown as { __recorderState: string }).__recorderState)).toBe('inactive');
   await expect(page.getByText('Voice cue attached — you can re-record it.')).toBeVisible();
+});
+
+test('@claim:demo-voice-cue sample cue plays, resets, and survives a backup round trip', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, '__sampleCuePlays', { value: 0, writable: true });
+    class FakeAudio {
+      constructor(_url: string) {}
+      play() { (window as unknown as { __sampleCuePlays: number }).__sampleCuePlays += 1; return Promise.resolve(); }
+    }
+    Object.defineProperty(window, 'Audio', { value: FakeAudio });
+  });
+  await page.goto('/?demo=1');
+  const sampleCue = page.getByRole('button', { name: 'Play voice cue for llevarse bien' });
+  await expect(sampleCue).toBeVisible();
+  await sampleCue.click();
+  expect(await page.evaluate(() => (window as unknown as { __sampleCuePlays: number }).__sampleCuePlays)).toBe(1);
+  await page.getByRole('link', { name: 'Settings' }).click();
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export JSON backup' }).click();
+  const stream = await (await downloadEvent).createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const backup = Buffer.concat(chunks);
+  expect(JSON.parse(backup.toString('utf8')).phrases.find((phrase: { id: string }) => phrase.id === 'demo-llevarse-bien').audio.type).toBe('audio/wav');
+  await page.goto('/demo');
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.locator('.phrase-card').first().getByRole('button', { name: 'Delete' }).click();
+  await page.goto('/demo/settings');
+  await page.locator('#import-file').setInputFiles({ name: 'sample.json', mimeType: 'application/json', buffer: backup });
+  await page.goto('/demo');
+  await expect(page.getByRole('button', { name: 'Play voice cue for llevarse bien' })).toBeVisible();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByRole('button', { name: 'Play voice cue for llevarse bien' })).toBeVisible();
 });
 
 test('@claim:recall-schedule the stored schedule proves every 1, 3, 7, 14 and 30-day interval', async ({ page }) => {

@@ -18,7 +18,7 @@
     "claim": "Your phrases and recordings stay on this device",
     "where": "landing facts, settings, privacy page, README",
     "test": "npx playwright test --grep @claim:local-only",
-    "sandbox": "fresh /demo flow; capture a unique phrase while recording all requests; assert no request leaves the product origin or contains phrase data"
+    "sandbox": "fresh /?demo=1 flow with a fake MediaRecorder; save a unique phrase and identifiable audio blob while recording every request; assert no request leaves the product origin or contains phrase/audio data, and the blob exists only in the demo IndexedDB namespace"
   },
   {
     "id": "account-free",
@@ -82,6 +82,13 @@
     "where": "capture form, landing how-it-works, README",
     "test": "npx playwright test --grep @claim:recording-limit",
     "sandbox": "fresh /demo capture view with fake media stream and controlled browser clock; assert recording at 9.999 seconds and stopped at 10 seconds"
+  },
+  {
+    "id": "demo-voice-cue",
+    "claim": "The sample demo includes a replayable voice cue",
+    "where": "landing action note and demo documentation",
+    "test": "npx playwright test --grep @claim:demo-voice-cue",
+    "sandbox": "fresh /?demo=1; assert the seeded cue is playable, Reset restores it, and JSON backup export/import preserves its audio blob"
   },
   {
     "id": "recall-schedule",

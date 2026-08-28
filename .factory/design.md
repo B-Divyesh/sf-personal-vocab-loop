@@ -52,3 +52,9 @@ dark navy CRT glow, dithered pixels; **light**: cyan, yellow and coral emission;
 **lens**: square orthographic game-sprite composition; **negative**: text, watermark,
 logos, people, brands, UI. Generated through the factory Azure image model on
 2026-08-28; original asset licensed for this product. The footer discloses this.
+
+The demo’s short replayable cue is also original: `src/demo.ts` synthesizes a
+two-note 16-bit PCM WAV cue at seed time. It is deliberately small and stored as
+the same local Blob that a user recording uses, so the sample remains available
+offline and tests the real recording, backup, and reset paths. It contains no
+spoken person, third-party recording, brand, or network request.
