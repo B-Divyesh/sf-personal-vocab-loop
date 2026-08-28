@@ -1,4 +1,5 @@
 import { expect, test } from 'playwright/test';
+import { createHash } from 'node:crypto';
 
 test('@claim:demo-isolation sample work is isolated and discarded', async ({ page }) => {
   await page.goto('/');
@@ -50,7 +51,7 @@ test('@claim:offline-reload demo remains usable offline after the first visit', 
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.getByText('llevarse bien')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Play voice cue for llevarse bien' })).toBeVisible();
-  await page.getByRole('link', { name: /^Loop/ }).click();
+  await page.getByRole('link', { name: /^Recall/ }).click();
   await expect(page.getByText('What was your personal sentence?')).toBeVisible();
 });
 
@@ -72,12 +73,12 @@ test('@claim:local-only demo phrase and recording stay in its browser namespace'
   page.on('request', (request) => requests.push(request.url()));
   await page.goto('/?demo=1');
   await page.getByRole('link', { name: 'Capture a phrase' }).click();
-  await page.getByLabel(/word or phrase/i).fill('auf jeden Fall');
+  await page.getByLabel(/^phrase/i).fill('auf jeden Fall');
   await page.getByLabel(/your sentence/i).fill('Das mache ich auf jeden Fall morgen.');
   await page.getByRole('button', { name: 'Record voice' }).click();
   await page.getByRole('button', { name: 'Stop recording' }).click();
   await expect(page.getByText('Voice cue attached — you can re-record it.')).toBeVisible();
-  await page.getByRole('button', { name: /save to my loop/i }).click();
+  await page.getByRole('button', { name: /save to my library/i }).click();
   await expect(page.getByRole('heading', { name: 'auf jeden Fall' })).toBeVisible();
   expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBe(true);
   expect(requests.some((url) => url.includes('auf%20jeden') || url.includes('auf+jeden'))).toBe(false);
@@ -94,20 +95,47 @@ test('@claim:local-only demo phrase and recording stay in its browser namespace'
   })).toEqual({ demo: expect.arrayContaining([expect.objectContaining({ word: 'auf jeden Fall', audio: 'voice-secret-marker' })]), real: [] });
 });
 
-test('@claim:account-free core loop works without an account', async ({ page }) => {
+test('@claim:account-free capture, recall, and export work without an account', async ({ page }) => {
   await page.goto('/demo/capture');
   await expect(page.getByRole('link', { name: /sign in|log in|create account/i })).toHaveCount(0);
-  await page.getByLabel(/word or phrase/i).fill('por si acaso');
+  await page.getByLabel(/^phrase/i).fill('por si acaso');
   await page.getByLabel(/your sentence/i).fill('Llevo un paraguas por si acaso.');
-  await page.getByRole('button', { name: /save to my loop/i }).click();
+  await page.getByRole('button', { name: /save to my library/i }).click();
   await expect(page.getByRole('heading', { name: 'por si acaso' })).toBeVisible();
-  await page.getByRole('link', { name: /^Loop/ }).click();
+  await page.getByRole('link', { name: /^Recall/ }).click();
   await page.getByRole('button', { name: /reveal my sentence/i }).click();
   await expect(page.getByText('Me llevo bien con la gente de mi nuevo equipo.')).toBeVisible();
   await page.getByRole('link', { name: 'Settings' }).click();
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export JSON backup' }).click();
   expect((await downloadEvent).suggestedFilename()).toMatch(/^vocab-loop-.*\.json$/);
+});
+
+test('@claim:free-core capture, recall, and export are free', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await page.goto('/capture');
+  await expect(page.getByText(/buy|checkout|payment/i)).toHaveCount(0);
+  await page.getByLabel(/^phrase/i).fill('por supuesto');
+  await page.getByLabel(/your sentence/i).fill('Por supuesto, puedo ayudarte mañana.');
+  await page.getByRole('button', { name: /save to my library/i }).click();
+  await page.evaluate(async () => {
+    const request = indexedDB.open('personal-vocab-loop');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const transaction = db.transaction('phrases', 'readwrite');
+    const all = transaction.objectStore('phrases').getAll();
+    const phrases = await new Promise<Array<Record<string, unknown>>>((resolve, reject) => { all.onsuccess = () => resolve(all.result); all.onerror = () => reject(all.error); });
+    phrases.forEach((phrase) => transaction.objectStore('phrases').put({ ...phrase, nextReview: new Date(0).toISOString() }));
+    await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error); });
+  });
+  await page.getByRole('link', { name: /^Recall/ }).click();
+  await page.getByRole('button', { name: /reveal my sentence/i }).click();
+  await expect(page.getByText('Por supuesto, puedo ayudarte mañana.')).toBeVisible();
+  await page.getByRole('link', { name: 'Settings' }).click();
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export JSON backup' }).click();
+  await downloadEvent;
+  expect(requests.some((url) => /checkout|payment/i.test(url))).toBe(false);
 });
 
 test('@claim:no-analytics demo loads no analytics or third-party runtime', async ({ page }) => {
@@ -134,7 +162,7 @@ test('@claim:microphone-on-action microphone access waits for the Record action'
   await expect(page.getByRole('alert')).toContainText('Microphone access was not available');
 });
 
-test('@claim:license-restore an existing valid license restores private shuffle', async ({ page }) => {
+test('@claim:license-restore an existing valid license restores the option to shuffle due phrases', async ({ page }) => {
   await page.route('https://api.sociobot.in/api/v1/products/personal-vocab-loop/verify?license=existing-token', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) }));
   await page.goto('/settings');
   await page.getByLabel('License token').fill('existing-token');
@@ -147,8 +175,8 @@ test('@claim:license-restore an existing valid license restores private shuffle'
     transaction.objectStore('phrases').put({ id: 'licensed-recall', word: 'encore', sentence: 'Je voudrais encore un café.', tag: 'French', createdAt: new Date(0).toISOString(), updatedAt: new Date(0).toISOString(), reviewStage: 0, nextReview: new Date(0).toISOString() });
     await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error); });
   });
-  await page.getByRole('link', { name: 'Loop', exact: true }).click();
-  await expect(page.getByRole('button', { name: /shuffle remaining/i })).toBeVisible();
+  await page.getByRole('link', { name: 'Recall', exact: true }).click();
+  await expect(page.getByRole('button', { name: /shuffle due phrases/i })).toBeVisible();
 });
 
 test('@claim:csv-export CSV contains one row for every sample phrase', async ({ page }) => {
@@ -297,12 +325,18 @@ test('@claim:demo-voice-cue sample cue plays, resets, and survives a backup roun
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.from(chunk));
   const backup = Buffer.concat(chunks);
-  expect(JSON.parse(backup.toString('utf8')).phrases.find((phrase: { id: string }) => phrase.id === 'demo-llevarse-bien').audio.type).toBe('audio/wav');
+  const backedUpAudio = JSON.parse(backup.toString('utf8')).phrases.find((phrase: { id: string }) => phrase.id === 'demo-llevarse-bien').audio;
+  const cueBytes = Buffer.from(backedUpAudio.data, 'base64');
+  expect(backedUpAudio.type).toBe('audio/wav');
+  expect(createHash('sha256').update(cueBytes).digest('hex')).toBe('e63706a5f6529561f54088d0a9e544a96f5f66484ffba109b78dcd781defba65');
+  expect(cueBytes.subarray(0, 4).toString()).toBe('RIFF');
+  expect(cueBytes.readUInt32LE(40) / (cueBytes.readUInt32LE(24) * 2)).toBeGreaterThan(3);
   await page.goto('/demo');
   page.on('dialog', (dialog) => dialog.accept());
   await page.locator('.phrase-card').first().getByRole('button', { name: 'Delete' }).click();
   await page.goto('/demo/settings');
   await page.locator('#import-file').setInputFiles({ name: 'sample.json', mimeType: 'application/json', buffer: backup });
+  await expect(page.locator('#import-status')).toHaveText('Imported 3 phrases into your library.');
   await page.goto('/demo');
   await expect(page.getByRole('button', { name: 'Play voice cue for llevarse bien' })).toBeVisible();
   await page.getByRole('button', { name: 'Reset demo' }).click();

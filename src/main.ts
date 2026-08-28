@@ -15,7 +15,7 @@ const VIEW_TITLES: Record<View, string> = {
   review: 'Recall phrases — Personal Vocab Loop',
   settings: 'Settings — Personal Vocab Loop'
 };
-const BUILD_ID = 'v1.0.1';
+const BUILD_ID = 'v1.0.2';
 let view: View = 'library';
 let phrases: Phrase[] = [];
 let notice = '';
@@ -32,6 +32,8 @@ let filter = '';
 let premium = false;
 let licenseMessage = '';
 let encryptedImportPending = false;
+let importInProgress = false;
+let importMessage = '';
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const noticeArea = document.querySelector<HTMLDivElement>('#notice-status')!;
 const demoMode = location.pathname === '/demo' || location.pathname.startsWith('/demo/') || new URLSearchParams(location.search).get('demo') === '1';
@@ -58,7 +60,8 @@ function viewFromLocation(): View {
   return (Object.entries(VIEW_PATHS).find(([, value]) => value === relative)?.[0] as View | undefined) || 'library';
 }
 function updateRouteMetadata() {
-  const title = demoMode ? (view === 'library' ? 'Demo — Personal Vocab Loop' : `Demo ${view} — Personal Vocab Loop`) : VIEW_TITLES[view];
+  const demoViewTitle: Record<View, string> = { library: 'Demo', capture: 'Demo capture', review: 'Demo recall', settings: 'Demo settings' };
+  const title = demoMode ? `${demoViewTitle[view]} — Personal Vocab Loop` : VIEW_TITLES[view];
   const canonicalPath = viewPath(view);
   const description = view === 'capture' ? 'Save a personal phrase, sentence, context, and optional voice cue.' : view === 'review' ? 'Recall due personal phrases on a clear spaced schedule.' : view === 'settings' ? 'Export, import, and adjust your private phrase library.' : demoMode ? 'Try Personal Vocab Loop with isolated sample phrases that are never saved to your real library.' : 'Practice personal phrases with voice cues and a clear recall schedule. Your library stays in this browser.';
   document.title = title;
@@ -69,6 +72,7 @@ function updateRouteMetadata() {
 }
 function resetReviewState() { revealed = false; reviewIndex = 0; reviewOrder = []; }
 async function goTo(next: View, replace = false) {
+  if (importInProgress) { showNotice('Wait for the backup import to finish.'); return; }
   if (replace) history.replaceState({ view: next }, '', viewPath(next));
   else history.pushState({ view: next }, '', viewPath(next));
   view = next;
@@ -93,7 +97,7 @@ function showNotice(message: string, _renderNow = true) {
   }, 4000);
 }
 function nav(active: View) {
-  return `<header class="topbar"><a class="brand" href="${viewPath('library')}" data-view="library" aria-label="Personal Vocab Loop library"><span aria-hidden="true">◆</span> VOCAB LOOP</a><nav aria-label="Primary"><a href="${viewPath('library')}" data-view="library" ${active === 'library' ? 'aria-current="page"' : ''}>Library</a><a href="${viewPath('review')}" data-view="review" ${active === 'review' ? 'aria-current="page"' : ''}>Loop${duePhrases().length ? `<b>${duePhrases().length}</b>` : ''}</a><a href="${viewPath('settings')}" data-view="settings" ${active === 'settings' ? 'aria-current="page"' : ''}>Settings</a>${demoMode ? '' : '<a href="/demo">Demo</a>'}</nav></header>`;
+  return `<header class="topbar"><a class="brand" href="${viewPath('library')}" data-view="library" aria-label="Personal Vocab Loop library"><span aria-hidden="true">◆</span> VOCAB LOOP</a><nav aria-label="Primary"><a href="${viewPath('library')}" data-view="library" ${active === 'library' ? 'aria-current="page"' : ''}>Library</a><a href="${viewPath('review')}" data-view="review" ${active === 'review' ? 'aria-current="page"' : ''}>Recall${duePhrases().length ? `<b>${duePhrases().length}</b>` : ''}</a><a href="${viewPath('settings')}" data-view="settings" ${active === 'settings' ? 'aria-current="page"' : ''}>Settings</a>${demoMode ? '' : '<a href="/demo">Demo</a>'}</nav></header>`;
 }
 function demoBanner() {
   return demoMode ? '<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><span>Changes stay in a separate sample library.</span><div><button class="text-button" id="reset-demo">Reset demo</button><button class="button secondary" id="leave-demo">Start for real</button></div></aside>' : '';
@@ -114,25 +118,25 @@ function render(routeChanged = false) {
 }
 function libraryView() {
   const shown = phrases.filter((phrase) => [phrase.word, phrase.sentence, phrase.tag].join(' ').toLowerCase().includes(filter.toLowerCase()));
-  if (!phrases.length) return `<section class="empty hero"><div><p class="eyebrow">Your private language lab</p><h1>Practice the phrases you want to say.</h1><p class="lede">For language learners who want their own phrases to return when speaking.</p><div class="hero-actions"><a class="button primary" href="/?demo=1">Try it with sample data</a><a class="button secondary" href="${viewPath('capture')}" data-view="capture">Capture your first phrase</a></div><p class="action-note">See three sample phrases and a replayable voice cue.</p><ul class="hero-facts"><li>Works offline after the first visit</li><li>Your phrases stay on this device</li><li>Free core loop · no account</li></ul></div><img src="/voice-orbit.webp" width="640" height="640" alt="Pixel-art voice crystal with colourful orbital signals" fetchpriority="high" decoding="async" /></section><section class="how"><h2>How the recall loop works</h2><ol><li><b>1</b> Write the phrase in a sentence you would actually use.</li><li><b>2</b> Say it once; save a voice cue of up to 10 seconds.</li><li><b>3</b> Recall it after 1, 3, 7, 14 and 30 days.</li></ol></section><section class="limits"><h2>What this does not do</h2><p>It does not translate or teach a course. It has no account or tracking.</p><p>Your phrases and recordings stay in this browser. <a href="/privacy/">Read the privacy details.</a></p></section>`;
-  return `<section class="page-head"><div><p class="eyebrow">Personal phrase library</p><h1>Words that sound like you</h1><p class="lede">${duePhrases().length ? `${duePhrases().length} phrase${duePhrases().length === 1 ? '' : 's'} ready for a quick recall.` : 'Your next phrase will appear here when it is ready.'}</p></div><a class="button primary" href="${viewPath('capture')}" data-view="capture">+ Capture a phrase</a></section><section class="tools"><label class="search"><span class="sr-only">Search your phrases</span><input id="search" value="${esc(filter)}" placeholder="Search words, sentences, tags" type="search" /></label><span>${shown.length} saved · schedule: 1 / 3 / 7 / 14 / 30 days</span></section><section class="phrase-grid" aria-label="Saved phrases">${shown.length ? shown.map(phraseCard).join('') : `<p class="no-results">No phrases match “${esc(filter)}”.</p>`}</section>`;
+  if (!phrases.length) return `<section class="empty hero"><div><p class="eyebrow">Your private language lab</p><h1>Practice the phrases you want to say.</h1><p class="lede">For language learners who want their own phrases to return when speaking.</p><div class="hero-actions"><a class="button primary" href="/?demo=1">Try it with sample data</a><a class="button secondary" href="${viewPath('capture')}" data-view="capture">Capture your first phrase</a></div><p class="action-note">See three sample phrases and hear a spoken Spanish cue.</p><ul class="hero-facts"><li>Works offline after the first visit</li><li>Your phrases stay on this device</li><li>Capture, recall, and export for free · no account</li></ul></div><img src="/voice-orbit.webp" width="640" height="640" alt="Pixel-art voice crystal with colourful orbital signals" fetchpriority="high" decoding="async" /></section><section class="how"><h2>How recall works</h2><ol><li><b>1</b> Write the phrase in a sentence you would actually use.</li><li><b>2</b> Say it once; save a voice cue of up to 10 seconds.</li><li><b>3</b> Recall it after 1, 3, 7, 14 and 30 days.</li></ol></section><section class="limits"><h2>What this does not do</h2><p>It has no account, ads, or tracking.</p><p>Your phrases and recordings stay in this browser. <a href="/privacy/">Read the privacy details.</a></p></section>`;
+  return `<section class="page-head"><div><p class="eyebrow">Personal phrase library</p><h1>Phrases that sound like you</h1><p class="lede">${duePhrases().length ? `${duePhrases().length} phrase${duePhrases().length === 1 ? '' : 's'} ready for a quick recall.` : 'Your next phrase will appear here when it is ready.'}</p></div><a class="button primary" href="${viewPath('capture')}" data-view="capture">+ Capture a phrase</a></section><section class="tools"><label class="search"><span class="sr-only">Search your phrases</span><input id="search" value="${esc(filter)}" placeholder="Search phrases, sentences, tags" type="search" /></label><span>${shown.length} saved · schedule: 1 / 3 / 7 / 14 / 30 days</span></section><section class="phrase-grid" aria-label="Saved phrases">${shown.length ? shown.map(phraseCard).join('') : `<p class="no-results">No phrases match “${esc(filter)}”.</p>`}</section>`;
 }
 function phraseCard(phrase: Phrase) {
   return `<article class="phrase-card"><div class="card-top"><span class="tag">${esc(phrase.tag)}</span><span class="due ${isDue(phrase.nextReview) ? 'ready' : ''}">${dueLabel(phrase.nextReview)}</span></div><h2>${esc(phrase.word)}</h2><p>“${esc(phrase.sentence)}”</p><div class="card-bottom">${phrase.audio ? `<button class="icon-button play" data-id="${phrase.id}" aria-label="Play voice cue for ${esc(phrase.word)}">▶ Play voice cue</button>` : '<span class="muted">No voice cue</span>'}<button class="text-button delete" data-id="${phrase.id}">Delete</button></div></article>`;
 }
 function captureView() {
-  return `<section class="capture-wrap"><a class="back" href="${viewPath('library')}" data-view="library">← Back to library</a><div class="capture-head"><p class="eyebrow">New signal</p><h1>Capture a phrase from your life.</h1><p class="lede">Use a sentence you could imagine saying aloud. That personal connection is the cue you’ll retrieve later.</p></div><form id="phrase-form" class="capture-form"><div class="field"><label for="word">Word or phrase <span aria-hidden="true">*</span></label><input id="word" name="word" required maxlength="90" autocomplete="off" placeholder="e.g. to run into" /></div><div class="field"><label for="sentence">Your sentence <span aria-hidden="true">*</span></label><textarea id="sentence" name="sentence" required maxlength="500" placeholder="I ran into my old neighbour at the market."></textarea><small>Make it specific to your life. You will be asked to recall this later.</small></div><div class="field"><label for="tag">Context tag</label><input id="tag" name="tag" maxlength="40" placeholder="work, travel, a person…" /><small>Optional, for finding this phrase later.</small></div><fieldset class="voice-field"><legend>Your voice cue <span class="optional">optional · max 10 seconds</span></legend><p>Record the phrase, your sentence, or the moment you want to remember. Microphone access is requested only when you press Record.</p><div class="record-controls"><button type="button" class="button secondary" id="record">● Record voice</button><span id="recording-status" aria-live="polite">No recording attached</span></div><audio id="draft-player" controls hidden></audio></fieldset><div class="form-actions"><a class="button ghost" href="${viewPath('library')}" data-view="library">Cancel</a><button class="button primary" type="submit">Save to my loop →</button></div><p class="privacy-note">${demoMode ? 'Saved only in the separate sample library until you leave the demo.' : 'Stored only in private browser storage. Export from Settings whenever you like.'}</p></form></section>`;
+  return `<section class="capture-wrap"><a class="back" href="${viewPath('library')}" data-view="library">← Back to library</a><div class="capture-head"><p class="eyebrow">New signal</p><h1>Capture a phrase from your life.</h1><p class="lede">Use a sentence you could imagine saying aloud. That personal connection is the cue you’ll retrieve later.</p></div><form id="phrase-form" class="capture-form"><div class="field"><label for="word">Phrase <span aria-hidden="true">*</span></label><input id="word" name="word" required maxlength="90" autocomplete="off" placeholder="e.g. to run into" /><small>A single word is fine.</small></div><div class="field"><label for="sentence">Your sentence <span aria-hidden="true">*</span></label><textarea id="sentence" name="sentence" required maxlength="500" placeholder="I ran into my old neighbour at the market."></textarea><small>Make it specific to your life. You will be asked to recall this later.</small></div><div class="field"><label for="tag">Context tag</label><input id="tag" name="tag" maxlength="40" placeholder="work, travel, a person…" /><small>Optional, for finding this phrase later.</small></div><fieldset class="voice-field"><legend>Your voice cue <span class="optional">optional · max 10 seconds</span></legend><p>Record the phrase, your sentence, or the moment you want to remember. Microphone access is requested only when you press Record.</p><div class="record-controls"><button type="button" class="button secondary" id="record">● Record voice</button><span id="recording-status" aria-live="polite">No recording attached</span></div><audio id="draft-player" controls hidden></audio></fieldset><div class="form-actions"><a class="button ghost" href="${viewPath('library')}" data-view="library">Cancel</a><button class="button primary" type="submit">Save to my library →</button></div><p class="privacy-note">${demoMode ? 'Saved only in the separate sample library until you leave the demo.' : 'Stored only in private browser storage. Export from Settings whenever you like.'}</p></form></section>`;
 }
 function reviewView() {
   const due = duePhrases();
   const phrase = due[reviewIndex % Math.max(due.length, 1)];
-  if (!phrase) return `<section class="review-empty"><p class="eyebrow">Loop clear</p><h1>Nothing needs a return yet.</h1><p class="lede">The schedule is intentionally quiet. Add a phrase, or come back when one is due.</p><div><a class="button primary" href="${viewPath('capture')}" data-view="capture">Capture a phrase</a><a class="button secondary" href="${viewPath('library')}" data-view="library">Open library</a></div></section>`;
-  return `<section class="review"><div class="review-meta"><a class="back" href="${viewPath('library')}" data-view="library">← Leave review</a><span>Phrase ${reviewIndex + 1} of ${due.length} · interval ${Math.min(phrase.reviewStage + 1, REVIEW_GAPS_DAYS.length)} of ${REVIEW_GAPS_DAYS.length}</span>${premium ? '<button class="text-button" id="shuffle">↯ Shuffle remaining</button>' : ''}</div><div class="review-card"><p class="eyebrow">Say it before you peek</p><h1>${esc(phrase.word)}</h1><p class="prompt">What was your personal sentence?</p>${revealed ? `<div class="answer"><p>“${esc(phrase.sentence)}”</p><span class="tag">${esc(phrase.tag)}</span>${phrase.audio ? `<button class="icon-button play review-play" data-id="${phrase.id}">▶ Replay your voice cue</button>` : ''}</div>` : `<button class="button primary reveal" id="reveal">Reveal my sentence <span aria-hidden="true">↓</span></button>`}</div>${revealed ? `<div class="review-actions"><button class="button danger" id="again">Need another pass <span>Tomorrow</span></button><button class="button primary" id="remembered">I recalled it <span>${phrase.reviewStage >= REVIEW_GAPS_DAYS.length - 1 ? '30 days' : `+${REVIEW_GAPS_DAYS[phrase.reviewStage + 1]} days`}</span></button></div><p class="review-help">Be honest, not harsh. “Need another pass” restarts a gentle one-day interval.</p>` : `<p class="review-help">Think or say the sentence aloud first. Press Space to reveal.</p>`}</section>`;
+  if (!phrase) return `<section class="review-empty"><p class="eyebrow">Recall clear</p><h1>Nothing needs a return yet.</h1><p class="lede">The schedule is intentionally quiet. Add a phrase, or come back when one is due.</p><div><a class="button primary" href="${viewPath('capture')}" data-view="capture">Capture a phrase</a><a class="button secondary" href="${viewPath('library')}" data-view="library">Open library</a></div></section>`;
+  return `<section class="review"><div class="review-meta"><a class="back" href="${viewPath('library')}" data-view="library">← Leave recall</a><span>Phrase ${reviewIndex + 1} of ${due.length} · interval ${Math.min(phrase.reviewStage + 1, REVIEW_GAPS_DAYS.length)} of ${REVIEW_GAPS_DAYS.length}</span>${premium ? '<button class="text-button" id="shuffle">↯ Shuffle due phrases</button>' : ''}</div><div class="review-card"><p class="eyebrow">Say it before you peek</p><h1>${esc(phrase.word)}</h1><p class="prompt">What was your personal sentence?</p>${revealed ? `<div class="answer"><p>“${esc(phrase.sentence)}”</p><span class="tag">${esc(phrase.tag)}</span>${phrase.audio ? `<button class="icon-button play review-play" data-id="${phrase.id}">▶ Replay your voice cue</button>` : ''}</div>` : `<button class="button primary reveal" id="reveal">Reveal my sentence <span aria-hidden="true">↓</span></button>`}</div>${revealed ? `<div class="review-actions"><button class="button danger" id="again">Need another pass <span>Tomorrow</span></button><button class="button primary" id="remembered">I recalled it <span>${phrase.reviewStage >= REVIEW_GAPS_DAYS.length - 1 ? '30 days' : `+${REVIEW_GAPS_DAYS[phrase.reviewStage + 1]} days`}</span></button></div><p class="review-help">Be honest, not harsh. “Need another pass” restarts a gentle one-day interval.</p>` : `<p class="review-help">Think or say the sentence aloud first. Press Space to reveal.</p>`}</section>`;
 }
 function settingsView() {
   const dataIntro = demoMode ? 'These sample phrases use a separate demo database. Exports contain sample data only.' : 'Your phrases and recordings stay in this browser. You can export them at any time.';
-  const existingLicense = demoMode ? '' : `<section class="plus"><div><p class="eyebrow">Existing license</p><h2>Restore Vocab Loop Plus</h2><p>Restore your existing license to use private shuffle on this device.</p>${premium ? '<p class="licensed">Plus is active on this device.</p>' : ''}</div><div><p>${premium ? 'Your license was verified on this device.' : 'Paste your existing license to restore Plus on this device.'}</p><form id="license-form" class="inline-form"><label for="license-token">License token</label><input id="license-token" required value="${storedLicense() || ''}" autocomplete="off" /><button class="button secondary">Restore license</button></form><p class="muted" aria-live="polite">${esc(licenseMessage)}</p><p class="muted"><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p></div></section>`;
-  return `<section class="settings"><p class="eyebrow">Your data, your device</p><h1>Keep your loop portable.</h1><p class="lede">${dataIntro}</p><div class="setting-grid"><section><h2>Export</h2><p>Take a plain JSON backup, a spreadsheet-friendly CSV, or an encrypted backup for safekeeping.</p><div class="stack"><button class="button secondary" id="export-json">Export JSON backup</button><button class="button secondary" id="export-csv">Export CSV</button><button class="button primary" id="encrypt-open">Export encrypted backup</button></div><form id="encrypt-form" class="inline-form" hidden><label for="export-password">Passphrase (8+ characters)</label><input id="export-password" type="password" minlength="8" required autocomplete="new-password" /><button class="button primary">Download encrypted backup</button></form></section><section><h2>Import</h2><p>Bring back a Vocab Loop JSON backup. Imported phrases merge by ID, keeping the newest version.</p><label class="file-button" for="import-file">Choose backup file<input id="import-file" type="file" accept="application/json,.json" /></label><form id="decrypt-form" class="inline-form" ${encryptedImportPending ? '' : 'hidden'}><label for="import-password">Passphrase for encrypted backup</label><input id="import-password" type="password" required autocomplete="current-password" /><button class="button primary">Unlock and import</button></form><p id="import-status" aria-live="polite" class="muted">${encryptedImportPending ? 'Encrypted backup selected. Enter its passphrase.' : ''}</p></section><section><h2>Appearance</h2><p>Choose the signal treatment that is easiest on your eyes.</p><div class="theme-toggle" role="group" aria-label="Colour theme"><button data-theme="system" class="theme">System</button><button data-theme="dark" class="theme">Night</button><button data-theme="light" class="theme">Light</button></div></section></div><section class="schedule"><h2>The return schedule</h2><p>After each successful recall, the next check moves out: <b>1 day → 3 days → 7 days → 14 days → 30 days</b>. “Need another pass” puts it back tomorrow. There are no streaks, scores, or notifications designed to pressure you.</p></section>${existingLicense}</section>`;
+  const existingLicense = demoMode ? '' : `<section class="plus"><div><p class="eyebrow">Existing license</p><h2>Restore Vocab Loop Plus</h2><p>Restore your existing license to shuffle due phrases on this device.</p>${premium ? '<p class="licensed">Plus is active on this device.</p>' : ''}</div><div><p>${premium ? 'Your license was verified on this device.' : 'Paste your existing license to restore the shuffle option on this device.'}</p><form id="license-form" class="inline-form"><label for="license-token">License token</label><input id="license-token" required value="${storedLicense() || ''}" autocomplete="off" /><button class="button secondary">Restore license</button></form><p class="muted" aria-live="polite">${esc(licenseMessage)}</p><p class="muted"><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p></div></section>`;
+  return `<section class="settings"><p class="eyebrow">Your data, your device</p><h1>Keep your library portable.</h1><p class="lede">${dataIntro}</p><div class="setting-grid"><section><h2>Export</h2><p>Take a plain JSON backup, a spreadsheet-friendly CSV, or an encrypted backup for safekeeping.</p><div class="stack"><button class="button secondary" id="export-json">Export JSON backup</button><button class="button secondary" id="export-csv">Export CSV</button><button class="button primary" id="encrypt-open">Export encrypted backup</button></div><form id="encrypt-form" class="inline-form" hidden><label for="export-password">Passphrase (8+ characters)</label><input id="export-password" type="password" minlength="8" required autocomplete="new-password" /><button class="button primary">Download encrypted backup</button></form></section><section id="import-section" aria-busy="${importInProgress}"><h2>Import</h2><p>Bring back a Vocab Loop JSON backup. Imported phrases merge by ID, keeping the newest version.</p><label class="file-button" for="import-file">Choose backup file<input id="import-file" type="file" accept="application/json,.json" ${importInProgress ? 'disabled' : ''} /></label><form id="decrypt-form" class="inline-form" ${encryptedImportPending ? '' : 'hidden'}><label for="import-password">Passphrase for encrypted backup</label><input id="import-password" type="password" required autocomplete="current-password" /><button class="button primary">Unlock and import</button></form><p id="import-status" aria-live="polite" class="muted">${esc(importMessage || (encryptedImportPending ? 'Encrypted backup selected. Enter its passphrase.' : ''))}</p></section><section><h2>Appearance</h2><p>Choose the signal treatment that is easiest on your eyes.</p><div class="theme-toggle" role="group" aria-label="Colour theme"><button data-theme="system" class="theme">System</button><button data-theme="dark" class="theme">Night</button><button data-theme="light" class="theme">Light</button></div></section></div><section class="schedule"><h2>The return schedule</h2><p>After each successful recall, the next check moves out: <b>1 day → 3 days → 7 days → 14 days → 30 days</b>. “Need another pass” puts it back tomorrow. There are no streaks, scores, or notifications designed to pressure you.</p></section>${existingLicense}</section>`;
 }
 async function play(id: string) {
   const phrase = phrases.find((item) => item.id === id);
@@ -143,6 +147,11 @@ async function play(id: string) {
   try { await player.play(); } catch { showNotice('Your browser could not play that recording.'); }
 }
 function bind() {
+  document.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => link.addEventListener('click', (event) => {
+    if (!importInProgress) return;
+    event.preventDefault();
+    showNotice('Wait for the backup import to finish.');
+  }));
   document.querySelectorAll<HTMLAnchorElement>('a[data-view]').forEach((link) => link.addEventListener('click', (event) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -203,9 +212,61 @@ async function grade(remembered: boolean) {
 async function exportJson() { download(`vocab-loop-${dateStamp()}.json`, JSON.stringify(await makeBackup(phrases), null, 2)); }
 async function exportEncrypted(event: SubmitEvent) { event.preventDefault(); try { const password = document.querySelector<HTMLInputElement>('#export-password')!.value; download(`vocab-loop-encrypted-${dateStamp()}.json`, await encryptBackup(await makeBackup(phrases), password)); showNotice('Encrypted backup downloaded. Keep the passphrase separately.'); } catch (caught) { error = caught instanceof Error ? caught.message : 'The encrypted backup could not be made.'; render(); } }
 let importText = '';
-async function chooseImport(event: Event) { const file = (event.target as HTMLInputElement).files?.[0]; if (!file) return; importText = await file.text(); try { const raw = JSON.parse(importText) as { format?: string }; if (raw.format === 'personal-vocab-loop-encrypted') { encryptedImportPending = true; document.querySelector<HTMLFormElement>('#decrypt-form')!.hidden = false; document.querySelector('#import-status')!.textContent = 'Encrypted backup selected. Enter its passphrase.'; document.querySelector<HTMLInputElement>('#import-password')?.focus(); return; } encryptedImportPending = false; await finishImport(await readBackup(raw)); } catch { encryptedImportPending = false; error = 'This backup file is invalid. Choose a JSON backup exported by Personal Vocab Loop and try again.'; render(); } }
-async function importEncrypted(event: SubmitEvent) { event.preventDefault(); try { await finishImport(await decryptBackup(importText, document.querySelector<HTMLInputElement>('#import-password')!.value)); encryptedImportPending = false; } catch (caught) { error = `${caught instanceof Error ? caught.message : 'This encrypted backup could not be unlocked.'} Re-enter the passphrase and try again, or choose the backup again.`; render(); document.querySelector<HTMLInputElement>('#import-password')?.focus(); } }
-async function finishImport(incoming: Phrase[]) { const map = new Map(phrases.map((phrase) => [phrase.id, phrase])); incoming.forEach((phrase) => { const current = map.get(phrase.id); if (!current || phrase.updatedAt > current.updatedAt) map.set(phrase.id, phrase); }); await replacePhrases([...map.values()]); showNotice(`Imported ${incoming.length} phrase${incoming.length === 1 ? '' : 's'} into your library.`); await refresh(); }
+function setImportBusy(busy: boolean, message: string) {
+  importInProgress = busy;
+  importMessage = message;
+  document.querySelector('#import-section')?.setAttribute('aria-busy', String(busy));
+  const status = document.querySelector('#import-status');
+  if (status) status.textContent = message;
+  const input = document.querySelector<HTMLInputElement>('#import-file');
+  if (input) input.disabled = busy;
+}
+async function chooseImport(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  setImportBusy(true, 'Importing backup…');
+  try {
+    importText = await file.text();
+    const raw = JSON.parse(importText) as { format?: string };
+    if (raw.format === 'personal-vocab-loop-encrypted') {
+      encryptedImportPending = true;
+      setImportBusy(false, 'Encrypted backup selected. Enter its passphrase.');
+      document.querySelector<HTMLFormElement>('#decrypt-form')!.hidden = false;
+      document.querySelector<HTMLInputElement>('#import-password')?.focus();
+      return;
+    }
+    encryptedImportPending = false;
+    await finishImport(await readBackup(raw));
+  } catch {
+    encryptedImportPending = false;
+    setImportBusy(false, '');
+    error = 'This backup file is invalid. Choose a JSON backup exported by Personal Vocab Loop and try again.';
+    render();
+  }
+}
+async function importEncrypted(event: SubmitEvent) {
+  event.preventDefault();
+  setImportBusy(true, 'Importing encrypted backup…');
+  try {
+    const incoming = await decryptBackup(importText, document.querySelector<HTMLInputElement>('#import-password')!.value);
+    encryptedImportPending = false;
+    await finishImport(incoming);
+  } catch (caught) {
+    setImportBusy(false, '');
+    error = `${caught instanceof Error ? caught.message : 'This encrypted backup could not be unlocked.'} Re-enter the passphrase and try again, or choose the backup again.`;
+    render();
+    document.querySelector<HTMLInputElement>('#import-password')?.focus();
+  }
+}
+async function finishImport(incoming: Phrase[]) {
+  const map = new Map(phrases.map((phrase) => [phrase.id, phrase]));
+  incoming.forEach((phrase) => { const current = map.get(phrase.id); if (!current || phrase.updatedAt > current.updatedAt) map.set(phrase.id, phrase); });
+  await replacePhrases([...map.values()]);
+  importInProgress = false;
+  importMessage = `Imported ${incoming.length} phrase${incoming.length === 1 ? '' : 's'} into your library.`;
+  await refresh();
+  showNotice(importMessage);
+}
 function dateStamp() { return new Date().toISOString().slice(0, 10); }
 function setTheme(theme: string) { localStorage.setItem(themeKey, theme); document.documentElement.dataset.theme = theme === 'system' ? '' : theme; showNotice(`Theme set to ${theme}.`); }
 async function submitLicense(event: SubmitEvent) { event.preventDefault(); restoreLicense(document.querySelector<HTMLInputElement>('#license-token')!.value); const result = await verifyLicense(true); premium = result.valid; licenseMessage = result.valid ? 'License active.' : 'That license is not active. Check the token and try again.'; render(); }

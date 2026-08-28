@@ -7,11 +7,11 @@ test('captures a personal phrase and runs a blind recall', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Practice the phrases you want to say.' })).toBeVisible();
   await page.getByRole('link', { name: /capture your first phrase/i }).click();
-  await page.getByLabel(/word or phrase/i).fill('run into');
+  await page.getByLabel(/^phrase/i).fill('run into');
   await page.getByLabel(/your sentence/i).fill('I ran into my neighbour at the market.');
   await page.getByLabel(/context tag/i).fill('neighbours');
-  await page.getByRole('button', { name: /save to my loop/i }).click();
-  await expect(page.getByRole('heading', { name: 'Words that sound like you' })).toBeVisible();
+  await page.getByRole('button', { name: /save to my library/i }).click();
+  await expect(page.getByRole('heading', { name: 'Phrases that sound like you' })).toBeVisible();
   expect((await page.getByRole('button', { name: 'Delete' }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.evaluate(async () => {
     const request = indexedDB.open('personal-vocab-loop');
@@ -21,7 +21,7 @@ test('captures a personal phrase and runs a blind recall', async ({ page }) => {
     all.result.forEach((item: { nextReview: string }) => { item.nextReview = new Date(0).toISOString(); store.put(item); });
     await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); });
   });
-  await page.getByRole('link', { name: 'Loop', exact: true }).click();
+  await page.getByRole('link', { name: 'Recall', exact: true }).click();
   await expect(page.getByText('What was your personal sentence?')).toBeVisible();
   await page.getByRole('button', { name: /reveal my sentence/i }).click();
   await expect(page.getByText('I ran into my neighbour at the market.')).toBeVisible();
@@ -51,13 +51,13 @@ test('empty state has no serious accessibility violations', async ({ page }) => 
 
 test('rejects whitespace-only required phrase values after trimming', async ({ page }) => {
   await page.goto('/capture');
-  await page.getByLabel(/word or phrase/i).fill('   ');
+  await page.getByLabel(/^phrase/i).fill('   ');
   await page.getByLabel(/your sentence/i).fill(' \n  ');
-  await page.getByRole('button', { name: /save to my loop/i }).click();
+  await page.getByRole('button', { name: /save to my library/i }).click();
 
   await expect(page).toHaveURL(/\/capture$/);
-  await expect(page.getByLabel(/word or phrase/i)).toBeFocused();
-  expect(await page.getByLabel(/word or phrase/i).evaluate((input: HTMLInputElement) => input.validationMessage)).toBe('Enter a word or phrase, not only spaces.');
+  await expect(page.getByLabel(/^phrase/i)).toBeFocused();
+  expect(await page.getByLabel(/^phrase/i).evaluate((input: HTMLInputElement) => input.validationMessage)).toBe('Enter a phrase, not only spaces.');
   expect(await page.evaluate(async () => {
     const request = indexedDB.open('personal-vocab-loop');
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
@@ -79,6 +79,28 @@ test('settings reveal encrypted forms only after their triggering action', async
     buffer: Buffer.from('{"format":"personal-vocab-loop-encrypted","version":1,"salt":"AA==","iv":"AA==","data":"AA=="}')
   });
   await expect(page.locator('#decrypt-form')).toBeVisible();
+});
+
+test('backup import announces progress and blocks route changes until storage completes', async ({ page }) => {
+  await page.addInitScript(() => {
+    const read = File.prototype.text;
+    File.prototype.text = function delayedText() {
+      return new Promise((resolve, reject) => window.setTimeout(() => read.call(this).then(resolve, reject), 250));
+    };
+  });
+  const backup = {
+    version: 1,
+    exportedAt: '2026-08-28T00:00:00.000Z',
+    phrases: [{ id: 'import-progress', word: 'a tiempo', sentence: 'Llegamos a tiempo.', tag: 'Spanish', createdAt: '2026-08-28T00:00:00.000Z', updatedAt: '2026-08-28T00:00:00.000Z', reviewStage: 0, nextReview: '2026-08-29T00:00:00.000Z' }]
+  };
+  await page.goto('/demo/settings');
+  await page.locator('#import-file').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
+  await expect(page.locator('#import-section')).toHaveAttribute('aria-busy', 'true');
+  await expect(page.locator('#import-status')).toHaveText('Importing backup…');
+  await page.getByRole('link', { name: 'Library', exact: true }).click();
+  await expect(page).toHaveURL(/\/demo\/settings$/);
+  await expect(page.locator('#import-status')).toHaveText('Imported 1 phrase into your library.');
+  await expect(page.locator('#import-section')).toHaveAttribute('aria-busy', 'false');
 });
 
 test('390px layout keeps the job and action visible with square artwork and accessible targets', async ({ page }) => {
@@ -112,6 +134,22 @@ test('390px layout keeps the job and action visible with square artwork and acce
   for (const box of await page.locator('.theme').evaluateAll((nodes) => nodes.map((node) => ({ height: node.getBoundingClientRect().height })))) {
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
+
+  await page.goto('/');
+  await page.locator('html').evaluate((root) => { root.style.fontSize = '200%'; });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await expect(page.getByRole('link', { name: /try it with sample data/i })).toBeVisible();
+});
+
+test('populated library and capture use phrase and recall terminology', async ({ page }) => {
+  await page.goto('/demo');
+  await expect(page.getByRole('heading', { name: 'Phrases that sound like you' })).toBeVisible();
+  await expect(page.getByPlaceholder('Search phrases, sentences, tags')).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Recall/ })).toBeVisible();
+  await page.getByRole('link', { name: 'Capture a phrase' }).click();
+  await expect(page.getByLabel(/^Phrase/)).toBeVisible();
+  await expect(page.getByText('A single word is fine.')).toBeVisible();
+  await expect(page.getByText(/word or phrase|leave review|private shuffle/i)).toHaveCount(0);
 });
 
 test('static host policy hardens responses and separates mutable from immutable files', () => {
@@ -141,7 +179,7 @@ test('malformed imports explain the problem and the recovery step', async ({ pag
 test('unknown paths return the styled 404 document', async ({ page }) => {
   const response = await page.goto('/not-a-real-route');
   expect(response?.status()).toBe(404);
-  await expect(page.getByRole('heading', { name: 'This phrase has left the loop.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'This phrase could not be found.' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Open your library' })).toBeVisible();
 });
 
@@ -152,8 +190,8 @@ test('view navigation uses real URLs, restores focus, updates metadata, and anno
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/settings$/);
   await expect(page).toHaveTitle('Settings — Personal Vocab Loop');
-  await expect(page.getByRole('heading', { name: 'Keep your loop portable.' })).toBeFocused();
-  await expect(page.locator('#route-status')).toHaveText('Keep your loop portable. loaded.');
+  await expect(page.getByRole('heading', { name: 'Keep your library portable.' })).toBeFocused();
+  await expect(page.locator('#route-status')).toHaveText('Keep your library portable. loaded.');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://personal-vocab-loop.sociobot.in/settings');
   await page.goBack();
   await expect(page).toHaveURL('http://127.0.0.1:4173/');
@@ -164,7 +202,7 @@ test('view navigation uses real URLs, restores focus, updates metadata, and anno
 test('clearing a demo notice does not replace the focused route heading', async ({ page }) => {
   await page.goto('/demo/settings');
   await page.getByRole('button', { name: 'Reset demo' }).click();
-  const heading = page.getByRole('heading', { name: 'Words that sound like you' });
+  const heading = page.getByRole('heading', { name: 'Phrases that sound like you' });
   await expect(heading).toBeFocused();
   await expect(page.locator('#notice-status')).toHaveText('Sample phrases reset.');
   await page.waitForTimeout(4_300);
@@ -208,7 +246,7 @@ test('legal, not-found, and demo routes carry the standard skeleton and metadata
   await page.goto('/demo');
   await expect(page).toHaveTitle('Demo — Personal Vocab Loop');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://personal-vocab-loop.sociobot.in/demo');
-  await expect(page.locator('footer')).toContainText('v1.0.1');
+  await expect(page.locator('footer')).toContainText('v1.0.2');
   await expect(page.locator('footer')).toContainText('Built by Param Factory');
 });
 

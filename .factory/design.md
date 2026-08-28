@@ -53,8 +53,10 @@ dark navy CRT glow, dithered pixels; **light**: cyan, yellow and coral emission;
 logos, people, brands, UI. Generated through the factory Azure image model on
 2026-08-28; original asset licensed for this product. The footer discloses this.
 
-The demo’s short replayable cue is also original: `src/demo.ts` synthesizes a
-two-note 16-bit PCM WAV cue at seed time. It is deliberately small and stored as
-the same local Blob that a user recording uses, so the sample remains available
-offline and tests the real recording, backup, and reset paths. It contains no
-spoken person, third-party recording, brand, or network request.
+The demo’s replayable cue is original synthetic speech generated locally with
+eSpeak NG’s `es-la` voice on 2026-08-28. It says, “Me llevo bien con la gente de
+mi nuevo equipo.” No human performer or third-party recording is involved. The
+source WAV is `assets/src/sample-spanish-cue.wav`; the shipped copy is stored as
+the same local Blob that a user recording uses. It remains available offline and
+tests the real playback, backup, import, and reset paths. Its SHA-256 is
+`e63706a5f6529561f54088d0a9e544a96f5f66484ffba109b78dcd781defba65`.

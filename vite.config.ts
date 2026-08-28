@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 
-const publicShell = ['/index.html', '/voice-orbit.webp'];
+const publicShell = ['/index.html', '/voice-orbit.webp', '/sample-spanish-cue.wav'];
 
 function previewRoutes(): Plugin {
   const pageRoutes = new Set(['/', '/capture', '/loop', '/settings', '/demo', '/demo/capture', '/demo/loop', '/demo/settings', '/privacy', '/privacy/', '/terms', '/terms/', '/404', '/404/']);

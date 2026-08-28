@@ -4,7 +4,7 @@ import { trimmedPhraseErrors } from './validation';
 describe('trimmedPhraseErrors', () => {
   it('rejects whitespace-only required phrase fields', () => {
     expect(trimmedPhraseErrors({ word: ' \n ', sentence: '\t  ' })).toEqual({
-      word: 'Enter a word or phrase, not only spaces.',
+      word: 'Enter a phrase, not only spaces.',
       sentence: 'Enter a personal sentence, not only spaces.'
     });
   });

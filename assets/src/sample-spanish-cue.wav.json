@@ -1,0 +1,9 @@
+{
+  "generator": "eSpeak NG 1.51",
+  "voice": "es-la",
+  "date": "2026-08-28",
+  "text": "Me llevo bien con la gente de mi nuevo equipo.",
+  "command": "espeak-ng -v es-la -s 142 -p 46 -a 150 -w sample-spanish-cue.wav <text>",
+  "human_performer": false,
+  "sha256": "e63706a5f6529561f54088d0a9e544a96f5f66484ffba109b78dcd781defba65"
+}

@@ -22,10 +22,17 @@
   },
   {
     "id": "account-free",
-    "claim": "The core capture, recall, and export loop works without an account",
+    "claim": "Capture, recall, and export work without an account",
     "where": "landing facts and README",
     "test": "npx playwright test --grep @claim:account-free",
     "sandbox": "fresh /demo flow; assert there is no account action, then capture and recall a phrase without authentication"
+  },
+  {
+    "id": "free-core",
+    "claim": "Capture, recall, and export are free",
+    "where": "landing facts, terms page, and README",
+    "test": "npx playwright test --grep @claim:free-core",
+    "sandbox": "fresh real-data entry without a license; capture and recall a phrase, export a backup, and assert no checkout or payment request occurs"
   },
   {
     "id": "no-analytics",
@@ -43,7 +50,7 @@
   },
   {
     "id": "license-restore",
-    "claim": "Existing Plus license holders can restore private shuffle",
+    "claim": "Existing Plus license holders can restore the option to shuffle due phrases",
     "where": "Settings, privacy page, terms page, README",
     "test": "npx playwright test --grep @claim:license-restore",
     "sandbox": "fresh real-data entry with the Sociobot verification response mocked valid; restore a token and assert shuffle appears in recall"
@@ -85,10 +92,10 @@
   },
   {
     "id": "demo-voice-cue",
-    "claim": "The sample demo includes a replayable voice cue",
+    "claim": "The sample demo includes a replayable spoken Spanish cue",
     "where": "landing action note and demo documentation",
     "test": "npx playwright test --grep @claim:demo-voice-cue",
-    "sandbox": "fresh /?demo=1; assert the seeded cue is playable, Reset restores it, and JSON backup export/import preserves its audio blob"
+    "sandbox": "fresh /?demo=1; assert playback, fixture SHA-256 and duration, Reset, and JSON backup export/import preserve the spoken audio blob"
   },
   {
     "id": "recall-schedule",
