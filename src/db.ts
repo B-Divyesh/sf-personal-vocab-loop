@@ -11,12 +11,18 @@ export type Phrase = {
   audio?: Blob;
 };
 
-const DATABASE = 'personal-vocab-loop';
+export const REAL_DATABASE = 'personal-vocab-loop';
+export const DEMO_DATABASE = 'demo:personal-vocab-loop';
+let databaseName = REAL_DATABASE;
 const STORE = 'phrases';
+
+export function useDatabase(name: typeof REAL_DATABASE | typeof DEMO_DATABASE): void {
+  databaseName = name;
+}
 
 function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE, 1);
+    const request = indexedDB.open(databaseName, 1);
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
@@ -64,5 +70,15 @@ export async function replacePhrases(phrases: Phrase[]): Promise<void> {
     phrases.forEach((phrase) => store.put(phrase));
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(new Error('Imported phrases could not be saved.'));
+  });
+}
+
+export async function clearPhrases(): Promise<void> {
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    transaction.objectStore(STORE).clear();
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(new Error('The sample phrases could not be reset.'));
   });
 }

@@ -1,14 +1,20 @@
 # Personal Vocab Loop
 
-Personal Vocab Loop is an offline-first language-practice PWA for learners who
-want their own useful phrases to survive into speech. Capture a word and a
-sentence from your life, optionally save a short voice cue, then recall it on
-a calm 1 / 3 / 7 / 14 / 30-day loop. There are no accounts or streaks.
+Personal Vocab Loop is a language-practice PWA for learners. Capture a word and
+a sentence from your life. Add a voice cue of up to 10 seconds, then recall it
+after 1, 3, 7, 14 and 30 days. The core loop works without an account.
 
-All phrases and recordings stay in the browser's IndexedDB storage. JSON, CSV,
-and encrypted JSON exports keep the library portable. A $12 one-time Plus
-license adds random ordering for recall sessions; the core loop and exports are
-always free.
+Phrases and recordings stay in the browser's IndexedDB. JSON backups can restore
+the library. CSV and passphrase-encrypted exports are also available. Existing
+Plus license holders can still restore private shuffle. New purchases are paused.
+
+## Try the isolated demo
+
+Open `http://localhost:5173/demo` in development, or visit
+<https://personal-vocab-loop.sociobot.in/demo>. It starts with three realistic
+sample phrases. Demo changes use the separate `demo:personal-vocab-loop`
+database. **Reset demo** restores the sample, and **Start for real** clears the
+demo database before opening the real library.
 
 ## Run and verify
 
@@ -23,7 +29,7 @@ npm run preview      # serve dist/ locally
 ```
 
 Deploy the contents of `dist/` to any static host. The manifest and service
-worker allow installation and cached offline use after the first visit. The
+worker provide cached offline use after the first visit. The
 build emits content-hashed app assets and a matching content-versioned service
 worker, so an installed copy discovers every new release instead of remaining
 on a stale shell. `public/staticwebapp.config.json` carries the production
@@ -31,7 +37,8 @@ security, MIME, and cache policy for Azure Static Web Apps.
 
 ## Privacy and product notes
 
-No analytics, advertising, accounts, remote fonts, or third-party runtime
+No analytics, advertising, trackers, remote fonts, or third-party runtime
 scripts are used. Microphone permission is requested only when recording.
 See [Privacy](public/privacy/index.html) and [Terms](public/terms/index.html).
+The claim tests are listed in [.factory/claims.json](.factory/claims.json).
 The researched scope and visual system are recorded in `.factory/`.

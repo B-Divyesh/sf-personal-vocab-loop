@@ -1,0 +1,93 @@
+[
+  {
+    "id": "demo-isolation",
+    "claim": "Demo — sample data, nothing is saved",
+    "where": "demo banner and privacy page",
+    "test": "npx playwright test --grep @claim:demo-isolation",
+    "sandbox": "fresh browser context at /demo; mutate/reset sample data; assert the real database is unchanged and demo records are cleared on exit"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit",
+    "where": "landing facts, README, manifest",
+    "test": "npx playwright test --grep @claim:offline-reload",
+    "sandbox": "fresh browser context at /demo; wait for the service worker; set context offline; reload and perform recall"
+  },
+  {
+    "id": "local-only",
+    "claim": "Your phrases and recordings stay on this device",
+    "where": "landing facts, settings, privacy page, README",
+    "test": "npx playwright test --grep @claim:local-only",
+    "sandbox": "fresh /demo flow; capture a unique phrase while recording all requests; assert no request leaves the product origin or contains phrase data"
+  },
+  {
+    "id": "account-free",
+    "claim": "The core capture, recall, and export loop works without an account",
+    "where": "landing facts and README",
+    "test": "npx playwright test --grep @claim:account-free",
+    "sandbox": "fresh /demo flow; assert there is no account action, then capture and recall a phrase without authentication"
+  },
+  {
+    "id": "no-analytics",
+    "claim": "No analytics, advertising, trackers, remote fonts, or third-party runtime scripts",
+    "where": "privacy page and README",
+    "test": "npx playwright test --grep @claim:no-analytics",
+    "sandbox": "fresh /demo flow while recording every request; assert only the product origin is contacted and no analytics or remote script is present"
+  },
+  {
+    "id": "microphone-on-action",
+    "claim": "Microphone access is requested only after pressing Record voice",
+    "where": "capture form, privacy page, README",
+    "test": "npx playwright test --grep @claim:microphone-on-action",
+    "sandbox": "fresh /demo capture view with an instrumented mediaDevices API; assert zero calls on load and one call after Record voice"
+  },
+  {
+    "id": "license-restore",
+    "claim": "Existing Plus license holders can restore private shuffle",
+    "where": "Settings, privacy page, terms page, README",
+    "test": "npx playwright test --grep @claim:license-restore",
+    "sandbox": "fresh real-data entry with the Sociobot verification response mocked valid; restore a token and assert shuffle appears in recall"
+  },
+  {
+    "id": "csv-export",
+    "claim": "Exports the library as CSV",
+    "where": "Settings and README",
+    "test": "npx playwright test --grep @claim:csv-export",
+    "sandbox": "fresh /demo sample data; download CSV; assert its header and exactly one row per sample phrase"
+  },
+  {
+    "id": "encrypted-export",
+    "claim": "Exports a passphrase-encrypted backup",
+    "where": "Settings, privacy page, README",
+    "test": "npx playwright test --grep @claim:encrypted-export",
+    "sandbox": "fresh /demo sample data; export with a passphrase; assert encrypted format and absence of plaintext sample phrases"
+  },
+  {
+    "id": "backup-roundtrip",
+    "claim": "JSON backups can restore a phrase library",
+    "where": "Settings and README",
+    "test": "npx playwright test --grep @claim:backup-roundtrip",
+    "sandbox": "fresh /demo sample data; export JSON, delete every phrase, import that file, and assert all sample rows return"
+  },
+  {
+    "id": "recording-limit",
+    "claim": "Voice cues stop after 10 seconds",
+    "where": "capture form, landing how-it-works, README",
+    "test": "npx playwright test --grep @claim:recording-limit",
+    "sandbox": "fresh /demo capture view with fake media stream and controlled browser clock; assert recording at 9.999 seconds and stopped at 10 seconds"
+  },
+  {
+    "id": "recall-schedule",
+    "claim": "Successful recall follows 1, 3, 7, 14 and 30-day intervals",
+    "where": "landing how-it-works, library, settings, README",
+    "test": "npx playwright test --grep @claim:recall-schedule",
+    "sandbox": "fresh /demo sample data; complete a stage-two recall and assert the visible and stored next interval is seven days"
+  },
+  {
+    "id": "pwa-update",
+    "claim": "An installed copy discovers and activates a new offline shell",
+    "where": "README",
+    "test": "npx playwright test --grep @claim:pwa-update",
+    "sandbox": "local server first serves the previous release worker and shell, switches to dist, then asserts the new worker activates and the repaired shell loads"
+  }
+]

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 
 test('captures a personal phrase and runs a blind recall', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Make the words you want to say come back.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Practice the phrases you want to say.' })).toBeVisible();
   await page.getByRole('link', { name: /capture your first phrase/i }).click();
   await page.getByLabel(/word or phrase/i).fill('run into');
   await page.getByLabel(/your sentence/i).fill('I ran into my neighbour at the market.');
@@ -30,7 +30,7 @@ test('app shell remains available offline after initial visit', async ({ page, c
   await page.goto('/');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Make the words you want to say come back.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Practice the phrases you want to say.' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   const shellIsCached = await page.evaluate(async () => {
     const script = document.querySelector<HTMLScriptElement>('script[type="module"]')?.src;
@@ -39,7 +39,7 @@ test('app shell remains available offline after initial visit', async ({ page, c
   expect(shellIsCached).toBe(true);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Make the words you want to say come back.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Practice the phrases you want to say.' })).toBeVisible();
 });
 
 test('empty state has no serious accessibility violations', async ({ page }) => {
@@ -85,8 +85,8 @@ test('390px layout keeps the job and action visible with square artwork and acce
   await page.goto('/');
 
   const hero = await page.locator('.hero img').boundingBox();
-  const heading = await page.getByRole('heading', { name: 'Make the words you want to say come back.' }).boundingBox();
-  const action = await page.getByRole('link', { name: /capture your first phrase/i }).boundingBox();
+  const heading = await page.getByRole('heading', { name: 'Practice the phrases you want to say.' }).boundingBox();
+  const action = await page.getByRole('link', { name: /try it with sample data/i }).boundingBox();
   expect(hero).not.toBeNull();
   expect(Math.abs(hero!.width - hero!.height)).toBeLessThanOrEqual(1);
   expect(heading!.y + heading!.height).toBeLessThan(844);
@@ -118,6 +118,7 @@ test('static host policy hardens responses and separates mutable from immutable 
     mimeTypes: Record<string, string>;
     globalHeaders: Record<string, string>;
     routes: Array<{ route: string; headers: Record<string, string> }>;
+    responseOverrides: Record<string, { statusCode: number; rewrite: string }>;
   };
   expect(config.mimeTypes['.webmanifest']).toBe('application/manifest+json');
   expect(config.globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
@@ -127,6 +128,21 @@ test('static host policy hardens responses and separates mutable from immutable 
   expect(config.globalHeaders['X-Frame-Options']).toBe('DENY');
   expect(config.routes.find(({ route }) => route === '/assets/*')?.headers['Cache-Control']).toContain('immutable');
   expect(config.routes.find(({ route }) => route === '/sw.js')?.headers['Cache-Control']).toContain('no-store');
+  expect(config.responseOverrides['404'].statusCode).toBe(404);
+  expect(config.responseOverrides['404'].rewrite).toBe('/404/index.html');
+});
+
+test('malformed imports explain the problem and the recovery step', async ({ page }) => {
+  await page.goto('/#settings');
+  await page.locator('#import-file').setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{not json') });
+  await expect(page.getByRole('alert')).toHaveText('This backup file is invalid. Choose a JSON backup exported by Personal Vocab Loop and try again.');
+});
+
+test('unknown paths return the styled 404 document', async ({ page }) => {
+  const response = await page.goto('/not-a-real-route');
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole('heading', { name: 'This phrase has left the loop.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open your library' })).toBeVisible();
 });
 
 test('keyboard, reduced motion, privacy, semantics, and both themes pass release smoke checks', async ({ page }) => {

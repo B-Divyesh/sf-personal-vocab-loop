@@ -2,4 +2,8 @@
 body { max-width:720px; margin:40px auto; padding:0 20px; background:#101427; color:#f5f4ff; font:16px/1.6 system-ui,sans-serif; }
 a { display:inline-flex; align-items:center; min-height:44px; color:#71f1dc; }
 h1 { line-height:1.1; }
+.signal { color:#ffd56a; font:700 1.2rem ui-monospace,monospace; letter-spacing:.3em; }
+.legal-actions { display:flex; gap:20px; flex-wrap:wrap; }
+.not-found main { margin-top:18vh; }
+:focus-visible { outline:3px solid #ffd56a; outline-offset:3px; }
 @media (max-width:760px) { body { margin:20px auto; } }

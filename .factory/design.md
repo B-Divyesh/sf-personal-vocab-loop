@@ -45,10 +45,10 @@ become instant; no animation loops without this fallback.
 
 `assets/src/voice-orbit.png` is an original generated illustration used in the empty
 library / hero: a pixel-art voice crystal surrounded by a waveform orbital signal.
-It is converted to WebP before shipping. Art prompt sheet: **subject**: one abstract
+It is converted to WebP before shipping. `public/social-preview.webp` is a 1200×630
+crop composed from that original on the Night ink background. Art prompt sheet: **subject**: one abstract
 voice-memory crystal and audio orbit; **world/materials**: crisp 16-bit demoscene,
 dark navy CRT glow, dithered pixels; **light**: cyan, yellow and coral emission;
 **lens**: square orthographic game-sprite composition; **negative**: text, watermark,
 logos, people, brands, UI. Generated through the factory Azure image model on
 2026-08-28; original asset licensed for this product. The footer discloses this.
-

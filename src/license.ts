@@ -5,8 +5,6 @@ const API = `https://api.sociobot.in/api/v1/products/${SLUG}`;
 
 type Check = { valid: boolean; checkedAt: number; reason?: string };
 
-export const checkoutUrl = `${API}/checkout`;
-
 export function captureLicenseFromUrl(): boolean {
   const url = new URL(location.href);
   const license = url.searchParams.get('license');

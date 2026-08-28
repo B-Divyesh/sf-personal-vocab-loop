@@ -1,7 +1,24 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 
 const publicShell = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png', '/voice-orbit.webp', '/legal.css', '/privacy/', '/terms/'];
+
+function previewRoutes(): Plugin {
+  const pageRoutes = new Set(['/', '/demo', '/privacy', '/privacy/', '/terms', '/terms/', '/404', '/404/']);
+  return {
+    name: 'preview-routes',
+    configurePreviewServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const pathname = new URL(request.url || '/', 'http://local').pathname;
+        if (pageRoutes.has(pathname) || pathname.includes('.')) return next();
+        response.statusCode = 404;
+        response.setHeader('Content-Type', 'text/html; charset=utf-8');
+        response.end(readFileSync('dist/404/index.html'));
+      });
+    }
+  };
+}
 
 function serviceWorker(version: string, generatedShell: string[]): string {
   const shell = [...new Set([...publicShell, ...generatedShell])];
@@ -59,7 +76,7 @@ function versionedServiceWorker(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [versionedServiceWorker()],
+  plugins: [previewRoutes(), versionedServiceWorker()],
   build: {
     target: 'es2022',
     rollupOptions: { output: { entryFileNames: 'assets/app-[hash].js', chunkFileNames: 'assets/[name]-[hash].js', assetFileNames: 'assets/[name]-[hash][extname]' } }

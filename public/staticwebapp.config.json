@@ -1,7 +1,6 @@
 {
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,js,png,jpg,svg,webp,ico,woff2,json,webmanifest,txt,xml,wasm}"]
+  "responseOverrides": {
+    "404": { "rewrite": "/404/index.html", "statusCode": 404 }
   },
   "mimeTypes": { ".webmanifest": "application/manifest+json" },
   "globalHeaders": {
@@ -17,6 +16,10 @@
     { "route": "/assets/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } },
     { "route": "/sw.js", "headers": { "Cache-Control": "no-cache, no-store, must-revalidate", "Service-Worker-Allowed": "/" } },
     { "route": "/", "headers": { "Cache-Control": "no-cache, must-revalidate" } },
+    { "route": "/demo", "rewrite": "/index.html", "headers": { "Cache-Control": "no-cache, must-revalidate" } },
+    { "route": "/privacy", "rewrite": "/privacy/index.html" },
+    { "route": "/terms", "rewrite": "/terms/index.html" },
+    { "route": "/404", "rewrite": "/404/index.html", "statusCode": 404 },
     { "route": "/index.html", "headers": { "Cache-Control": "no-cache, must-revalidate" } },
     { "route": "/manifest.webmanifest", "headers": { "Cache-Control": "public, max-age=3600, must-revalidate" } }
   ]

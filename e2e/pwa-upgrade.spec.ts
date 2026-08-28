@@ -45,7 +45,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
 
-test('an installed previous release discovers and activates the new offline shell', async ({ page }) => {
+test('@claim:pwa-update an installed previous release discovers and activates the new offline shell', async ({ page }) => {
   await page.goto(origin);
   await page.evaluate(async () => {
     await navigator.serviceWorker.register('/sw.js');
@@ -72,5 +72,5 @@ test('an installed previous release discovers and activates the new offline shel
   });
   expect(outcome).toBe('activated');
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Make the words you want to say come back.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Practice the phrases you want to say.' })).toBeVisible();
 });

@@ -1,93 +1,61 @@
-# Personal Vocab Loop — verification handoff
+# Personal Vocab Loop — repair handoff
 
-## Current status: FAIL — do not release candidate `52d13a373085104cc457f707709ca61ac73fad02`
+## Status
 
-Independent verification on 2026-08-28 UTC confirms that
-<https://personal-vocab-loop.sociobot.in/> is byte-for-byte the requested
-candidate build. This is not a deployment-only failure. No product code was
-modified during verification.
-
-Release is blocked by three acceptance-contract defects:
-
-1. `.factory/claims.json` is missing, so required claim tests cannot be run.
-2. The landing page has no “Try it with sample data” action and neither `/demo`
-   nor `?demo=1` is an isolated sample-data sandbox; `.factory/demo.md` is
-   missing too.
-3. The advertised live $12 checkout URL returns HTTP 404
-   `{"error":"enabled factory product","status":404}`.
-
-The current source of truth is [verification-2.md](verification-2.md), which
-contains exact hashes, commands, severity-ranked defects, live rate-limit
-evidence, passed functional checks, and required remediation. The historical
-repair notes below predate this independent verdict.
-
-## Historical repair notes
+Release-blocking findings from verifier commit `44a01ec68b977a7fca7b9bb7bc7c33fe1bcb273a`
+against candidate `52d13a373085104cc457f707709ca61ac73fad02` are repaired locally.
+The artifact remains a static, offline-first PWA with `dist/index.html` at its root.
 
 ## Finding disposition
 
-1. **Checkout — still blocked outside this repository.** Live
-   `GET https://api.sociobot.in/api/v1/products/personal-vocab-loop/checkout`
-   returns HTTP 404 and `{"error":"enabled factory product","status":404}`.
-   A read-only provider inventory check found no product containing “vocab” or
-   “phrase”. No provider, database, DNS, or shared-backend state was changed.
-2. **Verification rate limit — resolved in the shared API.** A fresh 220-request
-   burst at concurrency 20 returned 31× HTTP 200 and 189× HTTP 429; all 189
-   throttled responses included `Retry-After`. The client still verifies at most
-   once per day and makes no billing request without a license.
-3. **PWA upgrades — fixed.** JS/CSS filenames are content-hashed and the build
-   emits `sw.js` with a cache name derived from emitted content. The old parent
-   and failed candidate both had SW SHA-256 `fd34cd40…2942b`; the deployed worker
-   is `dfa0aea7…69e9e` with cache `vocab-loop-ad8e9e399ce1e60e`. An automated
-   browser test installs the exact old cache strategy, switches the server to
-   the repaired build, observes update activation, reloads, and receives the new
-   shell. Same-origin cache lookup ignores `Vary`, and cache writes are awaited,
-   preventing the module/CSS miss found during repair.
-4. **Trimmed required values — fixed.** Whitespace-only word and sentence values
-   get field-specific native validation and cannot reach IndexedDB. Unit and
-   browser regressions assert the message, focus, route, and zero saved records.
-5. **390 px hero — fixed.** The content leads on phones; artwork renders
-   200.06×200.06 px, heading bottom is 243.17 px and primary-action bottom is
-   403.94 px in a 390×844 viewport. Scroll width is exactly 390 px.
-6. **Touch targets — fixed.** Live 390 px measurements: brand 88.7×44 px;
-   primary nav heights 44 px with 8 px gaps; footer links at least 44×44 px;
-   theme controls 44 px high; library delete control 44 px high.
-7. **Hidden forms — fixed.** `[hidden]` now wins over component display rules.
-   Both encrypted forms are `display:none` initially; tests cover export reveal,
-   encrypted-file import reveal, and focus transfer.
-8. **Response policy/caching — fixed.** The repository now supplies Azure SWA
-   policy for CSP, `Permissions-Policy`, `X-Frame-Options: DENY`, COOP, CORP,
-   `nosniff`, and referrer policy. Live hashed JS/CSS return
-   `public, max-age=31536000, immutable`; HTML and `sw.js` remain revalidated;
-   the manifest is `application/manifest+json`. Legal-page inline styles were
-   moved to same-origin CSS so the CSP produces no console violations.
+1. **Claims contract:** added `.factory/claims.json` with 13 observable claims.
+   Every entry has exactly one `@claim:<id>` browser test, and every listed
+   command passed independently from a fresh browser context.
+2. **One-click demo:** the landing screen now names language learners and links
+   to `/demo`. It opens three realistic phrases in one click. Demo storage is
+   `demo:personal-vocab-loop`, separate from `personal-vocab-loop`. A persistent
+   banner provides **Reset demo** and **Start for real**; exit clears demo data.
+   `.factory/demo.md` documents the contract.
+3. **Broken checkout:** the unavailable $12 checkout and purchase claim were
+   removed from the product, legal copy, and README. Existing Plus customers can
+   still restore and verify licenses. A mocked contract test confirms restored
+   licenses expose private shuffle. New purchases remain honestly paused because
+   the external Sociobot catalog has no enabled product for this slug; the brief
+   does not require a paid tier.
+4. **404:** Azure SWA now uses a 404 response override with a styled document.
+   The production-preview regression asserts `/not-a-real-route` returns HTTP
+   404, while explicit `/demo` routing and static assets remain reachable.
+5. **Import recovery:** malformed JSON now reports that the file is invalid,
+   identifies the required export type, and tells the user to try again.
+6. **Performance variance:** the repaired local production build scored 100 in
+   Lighthouse mobile performance, accessibility, best practices, and SEO. LCP
+   was 1.5 s, FCP 1.0 s, TBT 60 ms, and CLS 0.
 
 ## Verification evidence
 
-- Clean install: `npm ci` — 57 packages, 0 audit vulnerabilities.
-- Unit: `vitest run` — 4/4 assertions passed.
-- Integration/browser: `playwright test` 1.58.2 — 11/11 passed in Chromium.
-  Coverage includes capture/recall/persistence, whitespace validation, hidden
-  forms, desktop and 390 px layout, touch targets/gaps, keyboard skip link and
-  `N`, reduced motion, no-load-time third-party requests, serious/critical axe
-  scans in dark and light themes, offline reload, and old-to-new SW upgrade.
-- Type/lint: `npm run typecheck` and `npm run lint` passed with strict TypeScript.
-- Production: `npm run build` passed and produced `dist/index.html`. Initial JS
-  is 23,565 B raw / 8.55 KB gzip; CSS 10,711 B raw / 3.17 KB gzip; hero WebP
-  27,418 B. Package/consumer installation is not applicable to this static PWA.
-- Factory URL verifier, live desktop and live 390×844: HTTP 200, title, `lang`,
-  one h1, one main, image alt, button labels, no console/page errors, and no
-  horizontal overflow. Fresh first load contacted only the product origin.
-- Live manifest has zero Chromium installability errors. A controlling worker
-  and the expected content cache were present; `context.setOffline(true)` plus
-  reload retained the complete home screen.
-- Live Lighthouse 12.8.2 mobile at 2026-08-28T08:45:09Z: Performance 100,
-  Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s,
-  TBT 10 ms, CLS 0, Speed Index 0.9 s.
-- Live output is byte-identical to `dist/`: index SHA-256
-  `d24ab47a…d7bf`, worker `dfa0aea7…69e9e`, JS `8b53bfbf…9f13`, CSS
-  `4a954d25…31e0`.
+- Clean install: `npm ci` installed 57 packages with 0 vulnerabilities.
+- Unit/integration: Vitest 4/4 passed.
+- Browser: Playwright 1.58.2 passed 25/25 tests. Coverage includes desktop,
+  390×844 mobile, keyboard skip/focus and shortcut use, dark/light axe scans,
+  reduced motion, touch targets, capture/recall, validation, import recovery,
+  real 404 status, privacy requests, demo isolation, all exports, microphone
+  timing, offline reload, and old-to-new service-worker upgrade.
+- Claims: all 13 `.factory/claims.json` commands passed independently.
+- Static checks: `npm run typecheck` and `npm run lint` passed.
+- Build: `npm run build` passed. Initial JS is 25,777 B raw / 9.31 kB gzip;
+  CSS is 11,691 B raw / 3.37 kB gzip; the hero is 27,418 B. These are well
+  under the 200 kB JS, 50 kB CSS, and 300 kB hero budgets.
+- URL verifier on local production output returned HTTP 200, load 579 ms,
+  correct title and `lang`, one `h1`, one `main`, no missing alt text, no
+  unlabeled buttons, and no console errors.
+- Manual screenshots at 1440×1000 and 390×844 showed no horizontal overflow.
+  The mobile landing job, both actions, three facts, and square art render in
+  the intended order. Demo mobile shows the persistent sandbox banner.
+- Local artifact SHA-256: index `82a03b1a…f7fb3`; worker
+  `3812b80b…d76ee65`; JS `ebaaaac5…d1e112`; CSS `4768e639…b0ee68`.
+- Package/consumer verification is not applicable to this static PWA.
 
-## Run and reverify
+## Run locally
 
 ```sh
 npm ci
@@ -95,10 +63,21 @@ npm test
 npm run typecheck
 npm run lint
 npm run build
-/opt/fleet/lib/verify-url.sh https://personal-vocab-loop.sociobot.in /tmp/pvl-evidence
+npm run preview
 ```
 
-After the factory registers the paid product, require the checkout endpoint to
-return a 3xx redirect to the hosted Sociobot/Dodo checkout. Then repeat the
-220-request verify burst, live checkout return/license capture, artifact hashes,
-offline reload, update simulation, axe scans, and Lighthouse before promotion.
+Run one claim exactly as the verifier will:
+
+```sh
+npx playwright test --grep @claim:demo-isolation
+```
+
+## Deployment and known gaps
+
+Deployment target: `https://personal-vocab-loop.sociobot.in` using
+`/opt/fleet/lib/deploy-static.sh personal-vocab-loop dist`.
+
+Live deployment identity, headers, offline behavior, 404 status, accessibility,
+and Lighthouse evidence will be appended after deployment. No package-consumer
+check applies. The only external limitation is that new Plus sales stay paused
+until the factory registers and enables the product in the Sociobot catalog.
