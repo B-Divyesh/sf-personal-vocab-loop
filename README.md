@@ -13,15 +13,21 @@ always free.
 ## Run and verify
 
 ```sh
-npm install
+npm ci
 npm run dev          # local development server
 npm test             # unit, browser flow, offline, and axe checks
+npm run typecheck    # strict TypeScript check
+npm run lint         # repository static-analysis gate
 npm run build        # reproducible static output in dist/
 npm run preview      # serve dist/ locally
 ```
 
 Deploy the contents of `dist/` to any static host. The manifest and service
-worker allow installation and cached offline use after the first visit.
+worker allow installation and cached offline use after the first visit. The
+build emits content-hashed app assets and a matching content-versioned service
+worker, so an installed copy discovers every new release instead of remaining
+on a stale shell. `public/staticwebapp.config.json` carries the production
+security, MIME, and cache policy for Azure Static Web Apps.
 
 ## Privacy and product notes
 

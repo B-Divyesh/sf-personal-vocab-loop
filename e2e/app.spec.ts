@@ -1,5 +1,6 @@
 import { expect, test } from 'playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFileSync } from 'node:fs';
 
 test('captures a personal phrase and runs a blind recall', async ({ page }) => {
   await page.goto('/');
@@ -10,6 +11,7 @@ test('captures a personal phrase and runs a blind recall', async ({ page }) => {
   await page.getByLabel(/context tag/i).fill('neighbours');
   await page.getByRole('button', { name: /save to my loop/i }).click();
   await expect(page.getByRole('heading', { name: 'Words that sound like you' })).toBeVisible();
+  expect((await page.getByRole('button', { name: 'Delete' }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.evaluate(async () => {
     const request = indexedDB.open('personal-vocab-loop');
     await new Promise<void>((resolve, reject) => { request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); });
@@ -29,6 +31,12 @@ test('app shell remains available offline after initial visit', async ({ page, c
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Make the words you want to say come back.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  const shellIsCached = await page.evaluate(async () => {
+    const script = document.querySelector<HTMLScriptElement>('script[type="module"]')?.src;
+    return Boolean(script && await caches.match(script));
+  });
+  expect(shellIsCached).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Make the words you want to say come back.' })).toBeVisible();
@@ -39,3 +47,120 @@ test('empty state has no serious accessibility violations', async ({ page }) => 
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''))).toEqual([]);
 });
+
+test('rejects whitespace-only required phrase values after trimming', async ({ page }) => {
+  await page.goto('/#capture');
+  await page.getByLabel(/word or phrase/i).fill('   ');
+  await page.getByLabel(/your sentence/i).fill(' \n  ');
+  await page.getByRole('button', { name: /save to my loop/i }).click();
+
+  await expect(page).toHaveURL(/#capture$/);
+  await expect(page.getByLabel(/word or phrase/i)).toBeFocused();
+  expect(await page.getByLabel(/word or phrase/i).evaluate((input: HTMLInputElement) => input.validationMessage)).toBe('Enter a word or phrase, not only spaces.');
+  expect(await page.evaluate(async () => {
+    const request = indexedDB.open('personal-vocab-loop');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const count = db.transaction('phrases').objectStore('phrases').count();
+    return new Promise<number>((resolve, reject) => { count.onsuccess = () => resolve(count.result); count.onerror = () => reject(count.error); });
+  })).toBe(0);
+});
+
+test('settings reveal encrypted forms only after their triggering action', async ({ page }) => {
+  await page.goto('/#settings');
+  await expect(page.locator('#encrypt-form')).toBeHidden();
+  await expect(page.locator('#decrypt-form')).toBeHidden();
+  await page.getByRole('button', { name: 'Export encrypted backup' }).click();
+  await expect(page.locator('#encrypt-form')).toBeVisible();
+  await expect(page.getByLabel(/passphrase \(8\+ characters\)/i)).toBeFocused();
+  await page.locator('#import-file').setInputFiles({
+    name: 'encrypted.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"format":"personal-vocab-loop-encrypted","version":1,"salt":"AA==","iv":"AA==","data":"AA=="}')
+  });
+  await expect(page.locator('#decrypt-form')).toBeVisible();
+});
+
+test('390px layout keeps the job and action visible with square artwork and accessible targets', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  const hero = await page.locator('.hero img').boundingBox();
+  const heading = await page.getByRole('heading', { name: 'Make the words you want to say come back.' }).boundingBox();
+  const action = await page.getByRole('link', { name: /capture your first phrase/i }).boundingBox();
+  expect(hero).not.toBeNull();
+  expect(Math.abs(hero!.width - hero!.height)).toBeLessThanOrEqual(1);
+  expect(heading!.y + heading!.height).toBeLessThan(844);
+  expect(action!.y + action!.height).toBeLessThan(844);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+
+  const targetSelectors = ['.brand', 'nav a', 'footer a'];
+  for (const selector of targetSelectors) {
+    const boxes = await page.locator(selector).evaluateAll((nodes) => nodes.map((node) => {
+      const box = node.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    for (const box of boxes) {
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+  const gaps = await page.locator('nav a').evaluateAll((nodes) => nodes.slice(1).map((node, index) => node.getBoundingClientRect().left - nodes[index].getBoundingClientRect().right));
+  gaps.forEach((gap) => expect(gap).toBeGreaterThanOrEqual(8));
+
+  await page.getByRole('link', { name: 'Settings' }).click();
+  for (const box of await page.locator('.theme').evaluateAll((nodes) => nodes.map((node) => ({ height: node.getBoundingClientRect().height })))) {
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
+test('static host policy hardens responses and separates mutable from immutable files', () => {
+  const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8')) as {
+    mimeTypes: Record<string, string>;
+    globalHeaders: Record<string, string>;
+    routes: Array<{ route: string; headers: Record<string, string> }>;
+  };
+  expect(config.mimeTypes['.webmanifest']).toBe('application/manifest+json');
+  expect(config.globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
+  expect(config.globalHeaders['Permissions-Policy']).toContain('microphone=(self)');
+  expect(config.globalHeaders['Cross-Origin-Opener-Policy']).toBe('same-origin');
+  expect(config.globalHeaders['Cross-Origin-Resource-Policy']).toBe('same-origin');
+  expect(config.globalHeaders['X-Frame-Options']).toBe('DENY');
+  expect(config.routes.find(({ route }) => route === '/assets/*')?.headers['Cache-Control']).toContain('immutable');
+  expect(config.routes.find(({ route }) => route === '/sw.js')?.headers['Cache-Control']).toContain('no-store');
+});
+
+test('keyboard, reduced motion, privacy, semantics, and both themes pass release smoke checks', async ({ page }) => {
+  const outbound = new Set<string>();
+  const errors: string[] = [];
+  page.on('request', (request) => outbound.add(new URL(request.url()).origin));
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (caught) => errors.push(caught.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('main')).toHaveCount(1);
+  await expect(page.locator('h1')).toHaveCount(1);
+  await expect(page.locator('img:not([alt])')).toHaveCount(0);
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('main')).toBeFocused();
+  expect(['', 'none']).toContain(await page.locator('.hero img').evaluate((image) => getComputedStyle(image).animationName));
+
+  await page.keyboard.press('n');
+  await expect(page).toHaveURL(/#capture$/);
+  await page.getByRole('link', { name: /back to library/i }).click();
+  expect([...outbound]).toEqual(['http://127.0.0.1:4173']);
+  expect(errors).toEqual([]);
+});
+
+for (const theme of ['dark', 'light']) {
+  test(`settings has no serious accessibility violations in ${theme} theme`, async ({ page }) => {
+    await page.addInitScript((value) => localStorage.setItem('vocab-loop-theme', value), theme);
+    await page.goto('/#settings');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''))).toEqual([]);
+  });
+}

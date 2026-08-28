@@ -3,6 +3,7 @@ import { allPhrases, removePhrase, replacePhrases, savePhrase, type Phrase } fro
 import { dueLabel, isDue, nextReviewAt, REVIEW_GAPS_DAYS } from './schedule';
 import { csvFor, decryptBackup, encryptBackup, makeBackup, readBackup } from './transfer';
 import { captureLicenseFromUrl, checkoutUrl, restoreLicense, storedLicense, verifyLicense } from './license';
+import { trimmedPhraseErrors } from './validation';
 
 type View = 'library' | 'capture' | 'review' | 'settings';
 let view: View = 'library';
@@ -79,7 +80,22 @@ function bind() {
   document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => { filter = (event.target as HTMLInputElement).value; render(); document.querySelector<HTMLInputElement>('#search')?.focus(); });
   document.querySelectorAll<HTMLButtonElement>('.play').forEach((button) => button.addEventListener('click', () => void play(button.dataset.id!)));
   document.querySelectorAll<HTMLButtonElement>('.delete').forEach((button) => button.addEventListener('click', async () => { const phrase = phrases.find((item) => item.id === button.dataset.id); if (phrase && confirm(`Delete “${phrase.word}”? This cannot be undone.`)) { await removePhrase(phrase.id); showNotice(`Deleted “${phrase.word}”.`); await refresh(); } }));
-  document.querySelector<HTMLFormElement>('#phrase-form')?.addEventListener('submit', async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement); const now = new Date(); const phrase: Phrase = { id: crypto.randomUUID(), word: String(data.get('word')).trim(), sentence: String(data.get('sentence')).trim(), tag: tag(String(data.get('tag'))), createdAt: now.toISOString(), updatedAt: now.toISOString(), reviewStage: 0, nextReview: nextReviewAt(0, now), audio: draftAudio }; try { await savePhrase(phrase); draftAudio = undefined; location.hash = '#library'; showNotice(`Saved “${phrase.word}”. Your first recall is tomorrow.`); await refresh(); } catch (caught) { error = caught instanceof Error ? caught.message : 'The phrase could not be saved.'; render(); } });
+  document.querySelector<HTMLFormElement>('#phrase-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const wordInput = form.elements.namedItem('word') as HTMLInputElement;
+    const sentenceInput = form.elements.namedItem('sentence') as HTMLTextAreaElement;
+    const values = { word: wordInput.value, sentence: sentenceInput.value };
+    const validationErrors = trimmedPhraseErrors(values);
+    wordInput.setCustomValidity(validationErrors.word || '');
+    sentenceInput.setCustomValidity(validationErrors.sentence || '');
+    if (!form.reportValidity()) return;
+    const data = new FormData(form);
+    const now = new Date();
+    const phrase: Phrase = { id: crypto.randomUUID(), word: values.word.trim(), sentence: values.sentence.trim(), tag: tag(String(data.get('tag'))), createdAt: now.toISOString(), updatedAt: now.toISOString(), reviewStage: 0, nextReview: nextReviewAt(0, now), audio: draftAudio };
+    try { await savePhrase(phrase); draftAudio = undefined; location.hash = '#library'; showNotice(`Saved “${phrase.word}”. Your first recall is tomorrow.`); await refresh(); } catch (caught) { error = caught instanceof Error ? caught.message : 'The phrase could not be saved.'; render(); }
+  });
+  document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('#word, #sentence').forEach((field) => field.addEventListener('input', () => field.setCustomValidity('')));
   document.querySelector<HTMLButtonElement>('#record')?.addEventListener('click', () => void toggleRecording());
   document.querySelector<HTMLButtonElement>('#reveal')?.addEventListener('click', () => { revealed = true; render(); });
   document.querySelector<HTMLButtonElement>('#again')?.addEventListener('click', () => void grade(false));
