@@ -1,7 +1,14 @@
 # Polish round 2 — cumulative adversarial repairs
 
-Implementation commit: `0d3256f5a36a0c1988bd339f24146d349af2bd43`.
+Implementation commit: `0d3256f12cee8fbafdc856eaf8575935b7cc010b`.
 Product URL: <https://personal-vocab-loop.sociobot.in>.
+
+Every row below includes its specific automated or source check. The associated
+production URL check is recorded in `live/cold-check.json` or
+`live/routes-and-links.json`. Its visual evidence is `live/landing-mobile.png`,
+`live/demo-mobile.png`, or `live/recall-mobile.png` under
+`.factory/evidence/polish-2/`. README-only findings use the source copy audit;
+their corresponding shipped wording was rechecked at the live root.
 
 | Finding | Change made | Evidence |
 | --- | --- | --- |
@@ -47,4 +54,27 @@ Product URL: <https://personal-vocab-loop.sociobot.in>.
 
 ## Live evidence
 
-Pending deployment and cold production verification.
+- Factory static deployment `791190d0-7e31-492e-9766-5aad553baafa` completed
+  from pushed commit `745d22d9a23193343357fbf2225edd358522f071`.
+- A cold 390 px context confirmed the first-screen wording/action with zero
+  overflow. At 200% text size, horizontal overflow also remained zero.
+- `/?demo=1` opened directly with the persistent banner, three phrases,
+  “Phrases that sound like you,” and the phrase-only search vocabulary.
+- The live IndexedDB cue is `audio/wav`, 3.289 seconds, and has the documented
+  SHA-256. Playback was activated from the visible control.
+- Reset retained h1 focus immediately and after 4.3 seconds. Recall settled at
+  `/demo/loop` with title “Demo recall — Personal Vocab Loop” and “Leave recall.”
+- Live demo isolation passed: delete changed 3→2, Reset restored 3, Start for
+  real exposed the real sentinel, and cleared the demo database to 0.
+- Fresh service-worker context reopened `/demo` offline and revealed the sample
+  sentence in Recall.
+- Root, Capture, Recall, Settings, every demo route, Privacy, Terms, `/404`, and
+  an unknown URL had correct titles, one h1/main, canonicals, and expected status.
+  Every discovered internal link returned 200; the unknown URL returned 404.
+- The URL verifier reported no console errors. Axe found zero serious/critical
+  issues on root, demo, Privacy, Terms, and 404. All observed traffic was
+  same-origin.
+- Lighthouse production mobile: Performance 100, Accessibility 100, Best
+  Practices 100, SEO 100; LCP 1.1 s, CLS 0, TBT 0 ms.
+- Evidence: `.factory/evidence/polish-2/live/` (`cold-check.json`,
+  `routes-and-links.json`, screenshots, verifier output, and Lighthouse JSON).

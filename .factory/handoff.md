@@ -2,8 +2,8 @@
 
 ## Status
 
-Release candidate repaired and locally accepted. Production deployment and cold
-live verification are the remaining work-order steps.
+Release candidate repaired, pushed, deployed, and accepted in a cold production
+verification. Every cumulative finding is resolved.
 
 ## What changed
 
@@ -21,7 +21,7 @@ live verification are the remaining work-order steps.
 ## Verification
 
 - Clean clone: `/tmp/pvl-polish2-clean.Miyqgm/repo` at implementation commit
-  `0d3256f5a36a0c1988bd339f24146d349af2bd43`.
+  `0d3256f12cee8fbafdc856eaf8575935b7cc010b`.
 - `npm ci`: pass, 0 vulnerabilities.
 - All 16 exact claim commands: pass independently.
 - `npm test`: pass, 4/4 unit and 35/35 browser tests. Two additional consecutive
@@ -35,6 +35,15 @@ live verification are the remaining work-order steps.
   complete image alt text.
 - Lighthouse local mobile: 100 Performance / 100 Accessibility / 100 Best
   Practices / 100 SEO; LCP 1.5 s, CLS 0, TBT 10 ms.
+- Pushed commit `745d22d9a23193343357fbf2225edd358522f071` and deployed it through the static
+  work-order configuration. Deployment ID:
+  `791190d0-7e31-492e-9766-5aad553baafa`.
+- Cold production checks passed demo entry/isolation/reset/exit, spoken fixture
+  hash and duration, offline recall, focus after 4.3 seconds, 200% text sizing,
+  route titles/canonicals/status, legal links, same-origin traffic, and 404.
+- Production axe: zero serious/critical issues on root, demo, Privacy, Terms,
+  and 404. Production Lighthouse: 100 / 100 / 100 / 100; LCP 1.1 s, CLS 0,
+  TBT 0 ms. The live URL verifier reported no console errors.
 - Evidence and finding map: `.factory/polish-2.md` and
   `.factory/evidence/polish-2/`.
 
@@ -53,5 +62,5 @@ Demo: <https://personal-vocab-loop.sociobot.in/?demo=1>.
 
 ## Known gaps
 
-Production deployment and post-deploy cold checks are pending. No product gap is
-known from the local or clean-clone acceptance pass.
+None found. All review-1 and review-2 findings are mapped in
+`.factory/polish-2.md` with automated, screenshot, and live evidence.

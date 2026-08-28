@@ -1,0 +1,142 @@
+{
+  "checks": [
+    {
+      "route": "/",
+      "status": 200,
+      "title": "Personal Vocab Loop — practice personal phrases",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "route": "/capture",
+      "status": 200,
+      "title": "Capture a phrase — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/capture"
+    },
+    {
+      "route": "/loop",
+      "status": 200,
+      "title": "Recall phrases — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/loop"
+    },
+    {
+      "route": "/settings",
+      "status": 200,
+      "title": "Settings — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/settings"
+    },
+    {
+      "route": "/demo",
+      "status": 200,
+      "title": "Demo — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "route": "/demo/capture",
+      "status": 200,
+      "title": "Demo capture — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/demo/capture"
+    },
+    {
+      "route": "/demo/loop",
+      "status": 200,
+      "title": "Demo recall — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/demo/loop"
+    },
+    {
+      "route": "/demo/settings",
+      "status": 200,
+      "title": "Demo settings — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/demo/settings"
+    },
+    {
+      "route": "/privacy/",
+      "status": 200,
+      "title": "Privacy — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/privacy/"
+    },
+    {
+      "route": "/terms/",
+      "status": 200,
+      "title": "Terms — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/terms/"
+    },
+    {
+      "route": "/404",
+      "status": 200,
+      "title": "Page not found — Personal Vocab Loop",
+      "h1": 1,
+      "main": 1,
+      "canonical": "https://personal-vocab-loop.sociobot.in/404"
+    }
+  ],
+  "crawled": [
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/#main",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/loop",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/settings",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/demo",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/?demo=1",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/capture",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/privacy/",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/terms/",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/demo/loop",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/demo/settings",
+      "status": 200
+    },
+    {
+      "url": "https://personal-vocab-loop.sociobot.in/demo/capture",
+      "status": 200
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "first": {
+    "title": "Personal Vocab Loop — practice personal phrases",
+    "headline": "Practice the phrases you want to say.",
+    "action": true,
+    "overflow": 0
+  },
+  "zoomOverflow": 0,
+  "demo": {
+    "url": "https://personal-vocab-loop.sociobot.in/?demo=1",
+    "banner": true,
+    "cards": 3,
+    "heading": "Phrases that sound like you",
+    "search": true
+  },
+  "audio": {
+    "hash": "e63706a5f6529561f54088d0a9e544a96f5f66484ffba109b78dcd781defba65",
+    "type": "audio/wav",
+    "seconds": 3.289342403628118
+  },
+  "focus": {
+    "focusedNow": true,
+    "focusedLater": true
+  },
+  "recall": {
+    "url": "https://personal-vocab-loop.sociobot.in/demo/loop",
+    "title": "Demo recall — Personal Vocab Loop",
+    "leave": true
+  },
+  "isolation": {
+    "changed": 2,
+    "reset": 3,
+    "realVisible": true,
+    "demoCount": 0
+  },
+  "offlineRecall": true,
+  "route404": {
+    "status": 404,
+    "title": "Page not found — Personal Vocab Loop",
+    "h1": "This phrase could not be found.",
+    "canonical": "https://personal-vocab-loop.sociobot.in/404"
+  },
+  "axe": {
+    "404": 0,
+    "/": 0,
+    "/?demo=1": 0,
+    "/privacy/": 0,
+    "/terms/": 0
+  },
+  "origins": [
+    "https://personal-vocab-loop.sociobot.in"
+  ],
+  "errorsBefore404": []
+}
