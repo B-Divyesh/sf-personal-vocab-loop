@@ -1,0 +1,223 @@
+CLAIM_TEST: npx playwright test --grep @claim:demo-isolation
+
+Running 1 test using 1 worker
+
+(node:1279) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1296) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1347) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1279) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:3:1 › @claim:demo-isolation sample work is isolated and discarded (7.3s)
+
+  1 passed (17.6s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:offline-reload
+
+Running 1 test using 1 worker
+
+(node:1657) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1657) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 e2e/claims.spec.ts:38:1 › @claim:offline-reload demo remains usable offline after the first visit (1.4s)
+
+
+  1) e2e/claims.spec.ts:38:1 › @claim:offline-reload demo remains usable offline after the first visit 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4173/demo
+    Call log:
+    [2m  - navigating to "http://127.0.0.1:4173/demo", waiting until "load"[22m
+
+
+      37 |
+      38 | test('@claim:offline-reload demo remains usable offline after the first visit', async ({ page, context }) => {
+    > 39 |   await page.goto('/demo');
+         |              ^
+      40 |   await page.evaluate(() => navigator.serviceWorker.ready);
+      41 |   await page.reload();
+      42 |   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+        at /work/repo/e2e/claims.spec.ts:39:14
+
+  1 failed
+    e2e/claims.spec.ts:38:1 › @claim:offline-reload demo remains usable offline after the first visit 
+CLAIM_EXIT: 1
+CLAIM_TEST: npx playwright test --grep @claim:local-only
+
+Running 1 test using 1 worker
+
+[2m[WebServer] [22m(node:1982) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2054) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:50:1 › @claim:local-only demo flow sends no phrase data off origin (1.1s)
+
+  1 passed (11.7s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:account-free
+[2m[WebServer] [22m(node:2270) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2301) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2319) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2319) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:62:1 › @claim:account-free core loop works without an account (1.1s)
+
+  1 passed (6.9s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:no-analytics
+[2m[WebServer] [22m(node:2438) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2470) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:78:1 › @claim:no-analytics demo loads no analytics or third-party runtime (661ms)
+
+  1 passed (6.4s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:microphone-on-action
+[2m[WebServer] [22m(node:2612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2644) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2662) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2662) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:87:1 › @claim:microphone-on-action microphone access waits for the Record action (631ms)
+
+  1 passed (6.4s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:license-restore
+[2m[WebServer] [22m(node:2781) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:2813) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2831) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2831) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:102:1 › @claim:license-restore an existing valid license restores private shuffle (801ms)
+
+  1 passed (6.6s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:csv-export
+[2m[WebServer] [22m(node:2987) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3019) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:3037) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3037) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:119:1 › @claim:csv-export CSV contains one row for every sample phrase (542ms)
+
+  1 passed (6.4s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:encrypted-export
+[2m[WebServer] [22m(node:3159) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3190) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:3208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:135:1 › @claim:encrypted-export encrypted backup hides sample phrase text (738ms)
+
+  1 passed (6.5s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:backup-roundtrip
+[2m[WebServer] [22m(node:3331) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3363) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:3381) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3381) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:150:1 › @claim:backup-roundtrip JSON export can restore the sample library (1.2s)
+
+  1 passed (7.0s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:recording-limit
+[2m[WebServer] [22m(node:3499) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3531) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:3549) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3549) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:171:1 › @claim:recording-limit voice recording stops after 10 seconds (693ms)
+
+  1 passed (6.6s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:recall-schedule
+[2m[WebServer] [22m(node:3690) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3721) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:3739) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3739) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/claims.spec.ts:202:1 › @claim:recall-schedule a successful sample recall moves to the stated interval (659ms)
+
+  1 passed (6.4s)
+CLAIM_EXIT: 0
+CLAIM_TEST: npx playwright test --grep @claim:pwa-update
+[2m[WebServer] [22m(node:3863) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3894) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:3912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/pwa-upgrade.spec.ts:48:1 › @claim:pwa-update an installed previous release discovers and activates the new offline shell (1.6s)
+
+  1 passed (7.5s)
+CLAIM_EXIT: 0
+CLAIM_FAILURE_COUNT: 0

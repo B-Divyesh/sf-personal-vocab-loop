@@ -1,0 +1,14 @@
+
+> personal-vocab-loop@1.0.0 build
+> tsc --noEmit && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 10 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/sw.js                       1.53 kB
+dist/index.html                  1.64 kB │ gzip: 0.59 kB
+dist/assets/index-BYHDQNr0.css  11.69 kB │ gzip: 3.37 kB
+dist/assets/app-Tg4fzQBI.js     25.78 kB │ gzip: 9.31 kB
+✓ built in 292ms

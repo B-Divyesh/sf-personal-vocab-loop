@@ -1,0 +1,2 @@
+{"run":1,"version":"12.8.2","scores":{"performance":85,"accessibility":100,"best-practices":100,"seo":100},"fcpMs":1235,"lcpMs":1570,"tbtMs":589,"cls":0,"speedIndexMs":1287}
+{"run":2,"version":"12.8.2","scores":{"performance":96,"accessibility":100,"best-practices":100,"seo":100},"fcpMs":1062,"lcpMs":1358,"tbtMs":181,"cls":0,"speedIndexMs":4095}

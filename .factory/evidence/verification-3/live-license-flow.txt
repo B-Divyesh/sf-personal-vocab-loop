@@ -1,0 +1,14 @@
+{
+  "message": "That license is not active. Check the token and try again.",
+  "origins": [
+    "https://personal-vocab-loop.sociobot.in",
+    "https://api.sociobot.in"
+  ],
+  "external": [
+    {
+      "url": "https://api.sociobot.in/api/v1/products/personal-vocab-loop/verify?license=qa-invalid-browser-token",
+      "method": "GET"
+    }
+  ],
+  "signInLinks": 0
+}

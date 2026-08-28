@@ -1,0 +1,42 @@
+[
+  {
+    "theme": "dark",
+    "view": "library",
+    "violations": []
+  },
+  {
+    "theme": "dark",
+    "view": "capture",
+    "violations": []
+  },
+  {
+    "theme": "dark",
+    "view": "review",
+    "violations": []
+  },
+  {
+    "theme": "dark",
+    "view": "settings",
+    "violations": []
+  },
+  {
+    "theme": "light",
+    "view": "library",
+    "violations": []
+  },
+  {
+    "theme": "light",
+    "view": "capture",
+    "violations": []
+  },
+  {
+    "theme": "light",
+    "view": "review",
+    "violations": []
+  },
+  {
+    "theme": "light",
+    "view": "settings",
+    "violations": []
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "recall": true,
+  "url": "https://personal-vocab-loop.sociobot.in/demo#review",
+  "h1": "llevarse bien",
+  "errors": [],
+  "body": "← Leave review\nPhrase 1 of 3 · interval 2 of 5\n\nSAY IT BEFORE YOU PEEK\n\nllevarse bien\n\nWhat was your personal sentence?\n\nReveal my sentence\n↓\n\nThink or say the sentence aloud first. Press Space to reveal."
+}

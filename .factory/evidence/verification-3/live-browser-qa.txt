@@ -1,0 +1,77 @@
+{
+  "desktop": {
+    "skipFocus": {
+      "text": "Skip to main content",
+      "outline": "rgb(255, 213, 106) solid 3px",
+      "rect": {
+        "x": 8,
+        "y": 8,
+        "width": 194.578125,
+        "height": 44,
+        "top": 8,
+        "right": 202.578125,
+        "bottom": 52,
+        "left": 8
+      }
+    },
+    "afterSkip": {
+      "tag": "MAIN",
+      "id": "main"
+    },
+    "routeFocus": {
+      "tag": "BODY",
+      "id": "",
+      "text": "Skip to main content\n    ◆ VOCAB LOOPLibraryLoopSettingsDemoYour data, your devi",
+      "url": "https://personal-vocab-loop.sociobot.in/#settings",
+      "title": "Personal Vocab Loop — practice personal phrases",
+      "h1": "Keep your loop portable."
+    },
+    "rootAxe": [],
+    "settingsLightAxe": [],
+    "captureAxe": [],
+    "reduced": {
+      "animationName": "none",
+      "animationDuration": "1e-05s",
+      "transitionDuration": "1e-05s"
+    },
+    "consoleErrors": [],
+    "pageErrors": [],
+    "requestOrigins": [
+      "https://personal-vocab-loop.sociobot.in"
+    ]
+  },
+  "mobile": {
+    "first": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "h1Visible": true,
+      "sampleVisible": true
+    },
+    "undersizedTargets": [],
+    "demo": {
+      "url": "https://personal-vocab-loop.sociobot.in/demo",
+      "banner": "Demo — sample data, nothing is saved\nChanges stay in a separate sample library.\nReset demo\nStart for real",
+      "cards": 3,
+      "scrollWidth": 390,
+      "axe": []
+    },
+    "errors": []
+  },
+  "reflow320": {
+    "scrollWidth": 320,
+    "clientWidth": 320,
+    "bodyWidth": 320
+  },
+  "offline": {
+    "cacheNames": [
+      "vocab-loop-8971fedbf001e3f8"
+    ],
+    "sample": true,
+    "recall": false,
+    "url": "https://personal-vocab-loop.sociobot.in/demo#review"
+  },
+  "microphoneGranted": {
+    "status": "Voice cue attached — you can re-record it.",
+    "audioVisible": true
+  }
+}

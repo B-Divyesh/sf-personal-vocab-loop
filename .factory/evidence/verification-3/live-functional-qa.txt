@@ -1,0 +1,53 @@
+{
+  "initialCount": 3,
+  "whitespaceWord": {
+    "active": "word",
+    "message": "Enter a word or phrase, not only spaces."
+  },
+  "whitespaceSentence": {
+    "active": "sentence",
+    "message": "Enter a personal sentence, not only spaces."
+  },
+  "afterRecovery": 4,
+  "persisted": true,
+  "capped": {
+    "word": 90,
+    "sentence": 500,
+    "tag": 40
+  },
+  "afterBoundary": 4,
+  "noResults": "No phrases match “definitely absent”.",
+  "recoveredSearchCount": 1,
+  "revealed": true,
+  "scheduleButton": "I recalled it\n+7 days",
+  "dueAfterGrade": "← Leave review\nPhrase 1 of 2 · interval 1 of 5",
+  "json": {
+    "version": 1,
+    "rows": 5,
+    "hasAudioField": false
+  },
+  "csv": {
+    "lines": 6,
+    "header": "word,sentence,tag,created_at,next_review,review_stage,has_recording"
+  },
+  "malformedError": "This backup file is invalid. Choose a JSON backup exported by Personal Vocab Loop and try again.",
+  "encrypted": {
+    "format": "personal-vocab-loop-encrypted",
+    "containsPlaintext": false
+  },
+  "wrongPassError": "This backup file is invalid. Choose a JSON backup exported by Personal Vocab Loop and try again.",
+  "delete": {
+    "beforeDelete": 0,
+    "afterCancel": 5,
+    "afterConfirm": 4,
+    "afterReset": 3
+  },
+  "exitDemo": {
+    "realEmpty": true,
+    "databases": [
+      "demo:personal-vocab-loop",
+      "personal-vocab-loop"
+    ]
+  },
+  "errors": []
+}

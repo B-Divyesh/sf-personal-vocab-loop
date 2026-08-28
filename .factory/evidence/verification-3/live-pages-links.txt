@@ -1,0 +1,169 @@
+{
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Personal Vocab Loop — practice personal phrases",
+      "description": "Practice personal phrases with voice cues and a clear recall schedule. Your library stays in this browser.",
+      "canonical": "https://personal-vocab-loop.sociobot.in/",
+      "ogTitle": "Personal Vocab Loop — practice personal phrases",
+      "twitter": "summary_large_image",
+      "appleTouch": null,
+      "skip": true,
+      "header": true,
+      "nav": true,
+      "main": 1,
+      "footer": true,
+      "h1": 1,
+      "seriousCritical": []
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "title": "Demo — Personal Vocab Loop",
+      "description": "Practice personal phrases with voice cues and a clear recall schedule. Your library stays in this browser.",
+      "canonical": "https://personal-vocab-loop.sociobot.in/",
+      "ogTitle": "Personal Vocab Loop — practice personal phrases",
+      "twitter": "summary_large_image",
+      "appleTouch": null,
+      "skip": true,
+      "header": true,
+      "nav": true,
+      "main": 1,
+      "footer": true,
+      "h1": 1,
+      "seriousCritical": []
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "title": "Privacy — Personal Vocab Loop",
+      "description": null,
+      "canonical": null,
+      "ogTitle": null,
+      "twitter": null,
+      "appleTouch": null,
+      "skip": false,
+      "header": false,
+      "nav": false,
+      "main": 1,
+      "footer": false,
+      "h1": 1,
+      "seriousCritical": []
+    },
+    {
+      "path": "/terms/",
+      "status": 200,
+      "title": "Terms — Personal Vocab Loop",
+      "description": null,
+      "canonical": null,
+      "ogTitle": null,
+      "twitter": null,
+      "appleTouch": null,
+      "skip": false,
+      "header": false,
+      "nav": false,
+      "main": 1,
+      "footer": false,
+      "h1": 1,
+      "seriousCritical": []
+    },
+    {
+      "path": "/not-a-real-route",
+      "status": 404,
+      "title": "Page not found — Personal Vocab Loop",
+      "description": null,
+      "canonical": null,
+      "ogTitle": null,
+      "twitter": null,
+      "appleTouch": null,
+      "skip": false,
+      "header": false,
+      "nav": false,
+      "main": 1,
+      "footer": false,
+      "h1": 1,
+      "seriousCritical": []
+    }
+  ],
+  "links": [
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/#main",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/#library",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/#review",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/#settings",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/demo",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/#capture",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/privacy/",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/privacy/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/terms/",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/terms/"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/demo#main",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/demo#library",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/demo#review",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/demo#settings",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/demo#capture",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/demo"
+    },
+    {
+      "href": "https://personal-vocab-loop.sociobot.in/",
+      "status": 200,
+      "final": "https://personal-vocab-loop.sociobot.in/"
+    },
+    {
+      "href": "mailto:privacy@sociobot.in",
+      "status": "mailto"
+    },
+    {
+      "href": "mailto:legal@sociobot.in",
+      "status": "mailto"
+    }
+  ]
+}

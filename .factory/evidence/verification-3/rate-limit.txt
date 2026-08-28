@@ -1,0 +1,39 @@
+{
+  "total": 220,
+  "elapsedMs": 1770,
+  "counts": {
+    "200": 30,
+    "429": 190
+  },
+  "first429": {
+    "i": 30,
+    "status": 429,
+    "retry": "4",
+    "body": "Too Many Requests! Wait for 4s"
+  },
+  "retryAfterValues": [
+    "4",
+    "3"
+  ],
+  "non429Samples": [
+    {
+      "i": 0,
+      "status": 200,
+      "retry": null,
+      "body": "{\"expires_at\":null,\"reason\":\"invalid\",\"valid\":false}"
+    },
+    {
+      "i": 1,
+      "status": 200,
+      "retry": null,
+      "body": "{\"expires_at\":null,\"reason\":\"invalid\",\"valid\":false}"
+    },
+    {
+      "i": 2,
+      "status": 200,
+      "retry": null,
+      "body": "{\"expires_at\":null,\"reason\":\"invalid\",\"valid\":false}"
+    }
+  ],
+  "missingRetryAfter429": 0
+}

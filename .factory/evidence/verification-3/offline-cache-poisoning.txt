@@ -1,0 +1,9 @@
+{
+  "navigationError": null,
+  "url": "https://personal-vocab-loop.sociobot.in/demo",
+  "title": "Privacy — Personal Vocab Loop",
+  "h1": "Privacy",
+  "hasDemoBanner": 0,
+  "hasSample": 0,
+  "errors": []
+}

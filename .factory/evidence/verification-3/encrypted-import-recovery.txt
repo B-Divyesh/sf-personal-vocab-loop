@@ -1,0 +1,8 @@
+{
+  "afterWrong": {
+    "error": "That passphrase did not unlock this backup.",
+    "formHidden": true,
+    "fileInputValue": ""
+  },
+  "afterReselect": "Imported 3 phrases into your library."
+}
