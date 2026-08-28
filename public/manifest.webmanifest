@@ -2,7 +2,7 @@
   "name": "Personal Vocab Loop",
   "short_name": "Vocab Loop",
   "description": "A private, offline loop for practicing the phrases you actually want to say.",
-  "start_url": "/?v=3",
+  "start_url": "/?v=4",
   "display": "standalone",
   "background_color": "#101427",
   "theme_color": "#101427",

@@ -1,6 +1,6 @@
 {
   "name": "personal-vocab-loop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "lint": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run && playwright test"
+    "test": "vitest run && playwright test",
+    "test:claims": "playwright test e2e/claims.spec.ts e2e/pwa-upgrade.spec.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",

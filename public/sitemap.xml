@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://personal-vocab-loop.sociobot.in/</loc></url>
+  <url><loc>https://personal-vocab-loop.sociobot.in/capture</loc></url>
+  <url><loc>https://personal-vocab-loop.sociobot.in/loop</loc></url>
+  <url><loc>https://personal-vocab-loop.sociobot.in/settings</loc></url>
   <url><loc>https://personal-vocab-loop.sociobot.in/demo</loc></url>
+  <url><loc>https://personal-vocab-loop.sociobot.in/demo/capture</loc></url>
+  <url><loc>https://personal-vocab-loop.sociobot.in/demo/loop</loc></url>
+  <url><loc>https://personal-vocab-loop.sociobot.in/demo/settings</loc></url>
   <url><loc>https://personal-vocab-loop.sociobot.in/privacy/</loc></url>
   <url><loc>https://personal-vocab-loop.sociobot.in/terms/</loc></url>
 </urlset>

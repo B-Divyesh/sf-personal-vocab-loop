@@ -40,8 +40,14 @@ test('@claim:offline-reload demo remains usable offline after the first visit', 
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await page.goto('/privacy/');
+  await expect(page.getByRole('heading', { name: 'Privacy' })).toBeVisible();
+  await page.goto('/terms/');
+  await expect(page.getByRole('heading', { name: 'Terms of use' })).toBeVisible();
   await context.setOffline(true);
-  await page.reload();
+  await page.goto('/demo');
+  await expect(page).toHaveTitle('Demo — Personal Vocab Loop');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.getByText('llevarse bien')).toBeVisible();
   await page.getByRole('link', { name: /^Loop/ }).click();
   await expect(page.getByText('What was your personal sentence?')).toBeVisible();
@@ -50,7 +56,7 @@ test('@claim:offline-reload demo remains usable offline after the first visit', 
 test('@claim:local-only demo flow sends no phrase data off origin', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
-  await page.goto('/demo#capture');
+  await page.goto('/demo/capture');
   await page.getByLabel(/word or phrase/i).fill('auf jeden Fall');
   await page.getByLabel(/your sentence/i).fill('Das mache ich auf jeden Fall morgen.');
   await page.getByRole('button', { name: /save to my loop/i }).click();
@@ -60,7 +66,7 @@ test('@claim:local-only demo flow sends no phrase data off origin', async ({ pag
 });
 
 test('@claim:account-free core loop works without an account', async ({ page }) => {
-  await page.goto('/demo#capture');
+  await page.goto('/demo/capture');
   await expect(page.getByRole('link', { name: /sign in|log in|create account/i })).toHaveCount(0);
   await page.getByLabel(/word or phrase/i).fill('por si acaso');
   await page.getByLabel(/your sentence/i).fill('Llevo un paraguas por si acaso.');
@@ -92,7 +98,7 @@ test('@claim:microphone-on-action microphone access waits for the Record action'
       throw new DOMException('denied', 'NotAllowedError');
     } } });
   });
-  await page.goto('/demo#capture');
+  await page.goto('/demo/capture');
   expect(await page.evaluate(() => (window as unknown as { __microphoneRequests: number }).__microphoneRequests)).toBe(0);
   await page.getByRole('button', { name: 'Record voice' }).click();
   expect(await page.evaluate(() => (window as unknown as { __microphoneRequests: number }).__microphoneRequests)).toBe(1);
@@ -101,7 +107,7 @@ test('@claim:microphone-on-action microphone access waits for the Record action'
 
 test('@claim:license-restore an existing valid license restores private shuffle', async ({ page }) => {
   await page.route('https://api.sociobot.in/api/v1/products/personal-vocab-loop/verify?license=existing-token', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) }));
-  await page.goto('/#settings');
+  await page.goto('/settings');
   await page.getByLabel('License token').fill('existing-token');
   await page.getByRole('button', { name: 'Restore license' }).click();
   await expect(page.getByText('License active.')).toBeVisible();
@@ -117,7 +123,7 @@ test('@claim:license-restore an existing valid license restores private shuffle'
 });
 
 test('@claim:csv-export CSV contains one row for every sample phrase', async ({ page }) => {
-  await page.goto('/demo#settings');
+  await page.goto('/demo/settings');
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV' }).click();
   const download = await downloadEvent;
@@ -132,8 +138,8 @@ test('@claim:csv-export CSV contains one row for every sample phrase', async ({ 
   expect(csv).toContain('natsukashii');
 });
 
-test('@claim:encrypted-export encrypted backup hides sample phrase text', async ({ page }) => {
-  await page.goto('/demo#settings');
+test('@claim:encrypted-export encrypted backup hides text and decrypts with its passphrase', async ({ page }) => {
+  await page.goto('/demo/settings');
   await page.getByRole('button', { name: 'Export encrypted backup' }).click();
   await page.getByLabel(/passphrase \(8\+ characters\)/i).fill('correct horse battery');
   const downloadEvent = page.waitForEvent('download');
@@ -145,26 +151,57 @@ test('@claim:encrypted-export encrypted backup hides sample phrase text', async 
   expect(JSON.parse(encrypted).format).toBe('personal-vocab-loop-encrypted');
   expect(encrypted).not.toContain('llevarse bien');
   expect(encrypted).not.toContain('ça me dit');
+  await page.goto('/demo');
+  page.on('dialog', (dialog) => dialog.accept());
+  for (let count = 3; count > 0; count -= 1) {
+    await page.locator('.phrase-card').first().getByRole('button', { name: 'Delete' }).click();
+    await expect(page.locator('.phrase-card')).toHaveCount(count - 1);
+  }
+  await page.goto('/demo/settings');
+  await page.locator('#import-file').setInputFiles({ name: 'encrypted.json', mimeType: 'application/json', buffer: Buffer.from(encrypted) });
+  await page.getByLabel('Passphrase for encrypted backup').fill('correct horse battery');
+  await page.getByRole('button', { name: 'Unlock and import' }).click();
+  await expect(page.getByRole('status')).toContainText('Imported 3 phrases');
+  await page.goto('/demo');
+  await expect(page.locator('.phrase-card')).toHaveCount(3);
 });
 
 test('@claim:backup-roundtrip JSON export can restore the sample library', async ({ page }) => {
-  await page.goto('/demo#settings');
+  await page.goto('/demo/settings');
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export JSON backup' }).click();
   const stream = await (await downloadEvent).createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.from(chunk));
   const backup = Buffer.concat(chunks);
-  await page.goto('/demo#library');
+  await page.goto('/demo');
   page.on('dialog', (dialog) => dialog.accept());
   for (let count = 3; count > 0; count -= 1) {
     await page.locator('.phrase-card').first().getByRole('button', { name: 'Delete' }).click();
     await expect(page.locator('.phrase-card')).toHaveCount(count - 1);
   }
-  await page.goto('/demo#settings');
+  await page.goto('/demo/settings');
   await page.locator('#import-file').setInputFiles({ name: 'vocab-loop.json', mimeType: 'application/json', buffer: backup });
   await expect(page.getByRole('status')).toContainText('Imported 3 phrases');
-  await page.goto('/demo#library');
+  await page.goto('/demo');
+  await expect(page.locator('.phrase-card')).toHaveCount(3);
+});
+
+test('@claim:backup-merge-newest imported IDs keep only the newest phrase version', async ({ page }) => {
+  const phrase = (updatedAt: string, word: string) => ({
+    id: 'demo-llevarse-bien', word, sentence: 'This sentence identifies the imported version.', tag: 'merge check',
+    createdAt: '2026-08-18T09:00:00.000Z', updatedAt, reviewStage: 1, nextReview: '2026-08-21T09:00:00.000Z'
+  });
+  const backup = (item: ReturnType<typeof phrase>) => Buffer.from(JSON.stringify({ version: 1, exportedAt: '2026-08-28T00:00:00.000Z', phrases: [item] }));
+  await page.goto('/demo/settings');
+  await page.locator('#import-file').setInputFiles({ name: 'older.json', mimeType: 'application/json', buffer: backup(phrase('2026-08-17T00:00:00.000Z', 'older import')) });
+  await page.goto('/demo');
+  await expect(page.getByRole('heading', { name: 'llevarse bien' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'older import' })).toHaveCount(0);
+  await page.goto('/demo/settings');
+  await page.locator('#import-file').setInputFiles({ name: 'newer.json', mimeType: 'application/json', buffer: backup(phrase('2026-08-29T00:00:00.000Z', 'newest import')) });
+  await page.goto('/demo');
+  await expect(page.getByRole('heading', { name: 'newest import' })).toBeVisible();
   await expect(page.locator('.phrase-card')).toHaveCount(3);
 });
 
@@ -190,7 +227,7 @@ test('@claim:recording-limit voice recording stops after 10 seconds', async ({ p
     Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }) } });
     Object.defineProperty(window, 'MediaRecorder', { value: FakeRecorder });
   });
-  await page.goto('/demo#capture');
+  await page.goto('/demo/capture');
   await page.getByRole('button', { name: 'Record voice' }).click();
   await expect(page.getByText('Recording… stops automatically in 10 seconds.')).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { __recordingDelay: number }).__recordingDelay)).toBe(10_000);
@@ -199,18 +236,37 @@ test('@claim:recording-limit voice recording stops after 10 seconds', async ({ p
   await expect(page.getByText('Voice cue attached — you can re-record it.')).toBeVisible();
 });
 
-test('@claim:recall-schedule a successful sample recall moves to the stated interval', async ({ page }) => {
-  await page.goto('/demo#review');
-  await expect(page.getByText('interval 2 of 5')).toBeVisible();
-  await page.getByRole('button', { name: /reveal my sentence/i }).click();
-  await expect(page.getByRole('button', { name: /I recalled it \+7 days/i })).toBeVisible();
-  const before = Date.now();
-  await page.getByRole('button', { name: /I recalled it/i }).click();
-  const nextReview = await page.evaluate(async () => {
+test('@claim:recall-schedule the stored schedule proves every 1, 3, 7, 14 and 30-day interval', async ({ page }) => {
+  await page.goto('/demo/loop');
+  const prepareStage = async (stage: number) => page.evaluate(async (nextStage) => {
     const request = indexedDB.open('demo:personal-vocab-loop');
     const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
-    const item = db.transaction('phrases').objectStore('phrases').get('demo-llevarse-bien');
-    return new Promise<string>((resolve, reject) => { item.onsuccess = () => resolve(item.result.nextReview); item.onerror = () => reject(item.error); });
+    const transaction = db.transaction('phrases', 'readwrite');
+    const store = transaction.objectStore('phrases');
+    store.clear();
+    store.put({ id: 'schedule-proof', word: 'schedule proof', sentence: 'I remember this sentence.', tag: 'test', createdAt: new Date(0).toISOString(), updatedAt: new Date(0).toISOString(), reviewStage: nextStage, nextReview: new Date(0).toISOString() });
+    await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error); });
+  }, stage);
+  const storedDelayDays = async () => page.evaluate(async () => {
+    const request = indexedDB.open('demo:personal-vocab-loop');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const item = db.transaction('phrases').objectStore('phrases').get('schedule-proof');
+    const value = await new Promise<{ nextReview: string; lastReviewed: string }>((resolve, reject) => { item.onsuccess = () => resolve(item.result); item.onerror = () => reject(item.error); });
+    return (new Date(value.nextReview).getTime() - new Date(value.lastReviewed).getTime()) / 86_400_000;
   });
-  expect(new Date(nextReview).getTime() - before).toBeGreaterThanOrEqual(7 * 86_400_000 - 5_000);
+
+  await prepareStage(4);
+  await page.reload();
+  await page.getByRole('button', { name: /reveal my sentence/i }).click();
+  await page.getByRole('button', { name: /Need another pass/i }).click();
+  expect(await storedDelayDays()).toBe(1);
+
+  for (const [stage, days] of [[0, 3], [1, 7], [2, 14], [3, 30], [4, 30]] as const) {
+    await prepareStage(stage);
+    await page.reload();
+    await page.getByRole('button', { name: /reveal my sentence/i }).click();
+    await expect(page.getByRole('button', { name: new RegExp(`I recalled it.*${days} days`) })).toBeVisible();
+    await page.getByRole('button', { name: /I recalled it/i }).click();
+    expect(await storedDelayDays()).toBe(days);
+  }
 });

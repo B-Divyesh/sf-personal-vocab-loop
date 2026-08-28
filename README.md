@@ -22,6 +22,7 @@ demo database before opening the real library.
 npm ci
 npm run dev          # local development server
 npm test             # unit, browser flow, offline, and axe checks
+npm run test:claims  # run every declared product-claim check
 npm run typecheck    # strict TypeScript check
 npm run lint         # repository static-analysis gate
 npm run build        # reproducible static output in dist/

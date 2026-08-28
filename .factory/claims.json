@@ -11,7 +11,7 @@
     "claim": "Works offline after the first visit",
     "where": "landing facts, README, manifest",
     "test": "npx playwright test --grep @claim:offline-reload",
-    "sandbox": "fresh browser context at /demo; wait for the service worker; set context offline; reload and perform recall"
+    "sandbox": "fresh browser context at /demo; wait for the service worker; visit Privacy and Terms; set context offline; navigate back to /demo and perform recall"
   },
   {
     "id": "local-only",
@@ -57,10 +57,10 @@
   },
   {
     "id": "encrypted-export",
-    "claim": "Exports a passphrase-encrypted backup",
+    "claim": "Exports a passphrase-encrypted backup that the same passphrase can restore",
     "where": "Settings, privacy page, README",
     "test": "npx playwright test --grep @claim:encrypted-export",
-    "sandbox": "fresh /demo sample data; export with a passphrase; assert encrypted format and absence of plaintext sample phrases"
+    "sandbox": "fresh /demo sample data; export with a passphrase; assert no plaintext; clear the library; decrypt and restore all samples with that passphrase"
   },
   {
     "id": "backup-roundtrip",
@@ -68,6 +68,13 @@
     "where": "Settings and README",
     "test": "npx playwright test --grep @claim:backup-roundtrip",
     "sandbox": "fresh /demo sample data; export JSON, delete every phrase, import that file, and assert all sample rows return"
+  },
+  {
+    "id": "backup-merge-newest",
+    "claim": "Imported phrases merge by ID, keeping the newest version",
+    "where": "Settings",
+    "test": "npx playwright test --grep @claim:backup-merge-newest",
+    "sandbox": "fresh /demo sample data; import older and newer versions of one existing ID; assert the older loses, the newer wins, and no duplicate is created"
   },
   {
     "id": "recording-limit",
@@ -78,10 +85,10 @@
   },
   {
     "id": "recall-schedule",
-    "claim": "Successful recall follows 1, 3, 7, 14 and 30-day intervals",
+    "claim": "Phrases return on a 1, 3, 7, 14 and 30-day schedule",
     "where": "landing how-it-works, library, settings, README",
     "test": "npx playwright test --grep @claim:recall-schedule",
-    "sandbox": "fresh /demo sample data; complete a stage-two recall and assert the visible and stored next interval is seven days"
+    "sandbox": "fresh /demo data; assert failed recall stores 1 day, then assert visible controls and stored dates for successful 3, 7, 14 and 30-day stages"
   },
   {
     "id": "pwa-update",

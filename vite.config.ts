@@ -2,10 +2,10 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 
-const publicShell = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png', '/voice-orbit.webp', '/legal.css', '/privacy/', '/terms/'];
+const publicShell = ['/index.html', '/voice-orbit.webp'];
 
 function previewRoutes(): Plugin {
-  const pageRoutes = new Set(['/', '/demo', '/privacy', '/privacy/', '/terms', '/terms/', '/404', '/404/']);
+  const pageRoutes = new Set(['/', '/capture', '/loop', '/settings', '/demo', '/demo/capture', '/demo/loop', '/demo/settings', '/privacy', '/privacy/', '/terms', '/terms/', '/404', '/404/']);
   return {
     name: 'preview-routes',
     configurePreviewServer(server) {
@@ -43,10 +43,16 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request)
       .then(async (response) => {
-        if (response.ok) await caches.open(CACHE).then((cache) => cache.put('/index.html', response.clone()));
+        if (response.ok) await caches.open(CACHE).then((cache) => cache.put(event.request, response.clone()));
         return response;
       })
-      .catch(() => caches.match('/index.html', { ignoreVary: true })));
+      .catch(async () => {
+        const exact = await caches.match(event.request, { ignoreVary: true });
+        if (exact) return exact;
+        const path = url.pathname.length > 1 && url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+        const isAppRoute = ['/', '/capture', '/loop', '/settings', '/demo', '/demo/capture', '/demo/loop', '/demo/settings'].includes(path);
+        return isAppRoute ? caches.match('/index.html', { ignoreVary: true }) : Response.error();
+      }));
     return;
   }
   event.respondWith(caches.match(event.request, { ignoreVary: true }).then((cached) => cached || fetch(event.request).then(async (response) => {
