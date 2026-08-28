@@ -1,43 +1,45 @@
-# Personal Vocab Loop — polish round 1 handoff
+# Personal Vocab Loop — adversarial review 2 handoff
 
-## Status: PASS
+## Status: FAIL
 
-Repair commit `3d779bf9c2eece15daffd401d7b1a804440fde80` was pushed to `main` and
-deployed through the static work order on 2026-08-28 UTC. The live product is
-<https://personal-vocab-loop.sociobot.in>.
+Completed a read-only adversarial review of source commit
+`4ffc19582d367f05c448612673a6712721954909` and the live product at
+<https://personal-vocab-loop.sociobot.in>. No product code was modified.
 
 ## Delivered
 
-- Closed every F-1-1 through F-1-19 finding in `.factory/review-1.md`; see
-  `.factory/polish-1.md` for the finding-to-evidence map.
-- Added the one-click `/?demo=1` isolated entry, persistent demo banner/reset,
-  original offline replayable sample cue, and a tested cue backup round trip.
-- Made route notices focus-safe, made schedule dates deterministic, and made
-  recording privacy and the exact 10-second limit observable claim tests.
-- Completed 404 canonical metadata, plain-language copy, phrase terminology,
-  landing privacy limits, and the required catalog description.
+- Wrote `.factory/review-2.md` with the cold mobile/desktop read, complete
+  landing and README copy audit, demo and storage exercise, claim matrix,
+  historical finding verification, structure/accessibility checks, missed
+  leverage assessment, and a FAIL verdict.
+- Rechecked all 19 findings from review 1 in both live behavior and source.
+  F-1-5 and F-1-13 remain half-fixed and are blocking again under their
+  original IDs.
+- Recorded nine new findings. F-2-1 is blocking because the declared
+  `demo-voice-cue` claim failed during `npm test`; F-2-2 through F-2-9 cover
+  unlisted claims and copy terminology.
 
-## Exact verification evidence
+## Verification
 
-- Fresh clean clone `/tmp/pvl-clean.NMXTaq/repo`: `npm ci`, then every one of
-  the 15 exact commands in `.factory/claims.json` passed independently. This
-  includes `demo-voice-cue`, recording privacy, clock boundary, schedule,
-  backup, offline, and update claims.
-- Local gates: `npm run typecheck`, `npm run lint`, `npm run build`, and
-  `npm test` passed (Vitest 4/4; Playwright 32/32). Production output is `dist/`.
-- Production deploy: `/opt/fleet/lib/deploy-static.sh personal-vocab-loop dist`
-  succeeded (deployment id `7b950fc6-4ac1-43d6-a63e-b969b4a0bfe4`).
-- Live: `verify-url.sh https://personal-vocab-loop.sociobot.in` passed with
-  title, language, main landmark, image alt, and no console errors.
-- Live axe: zero violations on `/?demo=1`, `/privacy/`, `/terms/`, and the
-  designed unknown-route 404. The unknown URL returned HTTP 404 and its
-  canonical is `/404`; manifest MIME and immutable asset caching were checked.
-- Live Lighthouse (mobile): Performance **100**, Accessibility **100**; LCP
-  1,038 ms and CLS 0. The JSON report is in the polish evidence directory.
-- Cold live reset kept focus on “Words that sound like you” immediately and
-  after 4.3 seconds. Screenshots and raw checks are in
-  `.factory/evidence/polish-1/`.
+- Fresh clone: `/tmp/pvl-review2.YCHMFB/repo`; `npm ci` passed.
+- All 15 exact `.factory/claims.json` commands passed independently.
+- `npm test` failed with 31/32 Playwright tests passing; the failure was
+  `@claim:demo-voice-cue` after its backup import. Ten isolated repeats and a
+  later `npm run test:claims` passed, confirming an intermittent missing-wait
+  problem rather than clearing the observed failure.
+- `npm run typecheck`, `npm run lint`, and `npm run build` passed. `dist/` was
+  produced; app JavaScript was 10.49 kB gzip.
+- Live cold reads at 390×844 and 1440×900 passed the first-screen clarity gate.
+- Live demo isolation, Reset, Start for real, same-origin traffic, and offline
+  recall passed. The sample audio was confirmed in source to be two synthesized
+  tones rather than speech.
+- Live route/metadata/link/focus checks passed. `verify-url.sh` passed, and axe
+  reported zero violations on root, demo, Privacy, Terms, and the designed 404.
 
-## Known gaps
+## Required next work
 
-None.
+Resolve every finding in `.factory/review-2.md`, especially the spoken sample,
+the unstable voice-backup claim test, and phrase/recall terminology. Then rerun
+the entire review from a clean clone. Do not treat the later passing claim run
+as sufficient evidence while the full-suite failure remains reproducible in
+the review record.
