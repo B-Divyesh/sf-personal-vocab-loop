@@ -1,21 +1,27 @@
-# Personal Vocab Loop — repair handoff
+# Personal Vocab Loop — verification handoff
 
-## Status: repository repair deployed; checkout registration still blocks release
+## Current status: FAIL — do not release candidate `52d13a373085104cc457f707709ca61ac73fad02`
 
-Repair work order `personal-vocab-loop-repair-1` was implemented from verifier
-report commit `9ed979a18e0281b695a92f48b56288b1e3d78297`. The repaired application commit
-is `7370f7c930e89b246a42af2c5578ce0edb961934` and was pushed to `origin/main`.
-Azure Static Web Apps deployment `40dba6cf-52a3-4467-a8fc-70707bf642db`
-succeeded on 2026-08-28 UTC and is live at
-<https://personal-vocab-loop.sociobot.in/>.
+Independent verification on 2026-08-28 UTC confirms that
+<https://personal-vocab-loop.sociobot.in/> is byte-for-byte the requested
+candidate build. This is not a deployment-only failure. No product code was
+modified during verification.
 
-Seven of the verifier's eight findings are resolved. Production checkout still
-returns 404 because no live Dodo product or enabled Sociobot `factory_products`
-record exists for this slug. The repository contract prohibits a product worker
-from mutating billing/provider state, and the paid-unlock contract's
-`fleet/new-paid-product.sh` registration helper is not present in this worker
-image. The factory billing owner must register the immutable $12 product and
-return URL; do not release until checkout returns a hosted-checkout redirect.
+Release is blocked by three acceptance-contract defects:
+
+1. `.factory/claims.json` is missing, so required claim tests cannot be run.
+2. The landing page has no “Try it with sample data” action and neither `/demo`
+   nor `?demo=1` is an isolated sample-data sandbox; `.factory/demo.md` is
+   missing too.
+3. The advertised live $12 checkout URL returns HTTP 404
+   `{"error":"enabled factory product","status":404}`.
+
+The current source of truth is [verification-2.md](verification-2.md), which
+contains exact hashes, commands, severity-ranked defects, live rate-limit
+evidence, passed functional checks, and required remediation. The historical
+repair notes below predate this independent verdict.
+
+## Historical repair notes
 
 ## Finding disposition
 
