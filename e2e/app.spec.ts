@@ -118,7 +118,7 @@ test('static host policy hardens responses and separates mutable from immutable 
     mimeTypes: Record<string, string>;
     globalHeaders: Record<string, string>;
     routes: Array<{ route: string; headers: Record<string, string> }>;
-    responseOverrides: Record<string, { statusCode: number; rewrite: string }>;
+    responseOverrides: Record<string, { rewrite: string }>;
   };
   expect(config.mimeTypes['.webmanifest']).toBe('application/manifest+json');
   expect(config.globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
@@ -128,7 +128,6 @@ test('static host policy hardens responses and separates mutable from immutable 
   expect(config.globalHeaders['X-Frame-Options']).toBe('DENY');
   expect(config.routes.find(({ route }) => route === '/assets/*')?.headers['Cache-Control']).toContain('immutable');
   expect(config.routes.find(({ route }) => route === '/sw.js')?.headers['Cache-Control']).toContain('no-store');
-  expect(config.responseOverrides['404'].statusCode).toBe(404);
   expect(config.responseOverrides['404'].rewrite).toBe('/404/index.html');
 });
 

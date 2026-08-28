@@ -1,6 +1,6 @@
 {
   "responseOverrides": {
-    "404": { "rewrite": "/404/index.html", "statusCode": 404 }
+    "404": { "rewrite": "/404/index.html" }
   },
   "mimeTypes": { ".webmanifest": "application/manifest+json" },
   "globalHeaders": {
@@ -19,7 +19,7 @@
     { "route": "/demo", "rewrite": "/index.html", "headers": { "Cache-Control": "no-cache, must-revalidate" } },
     { "route": "/privacy", "rewrite": "/privacy/index.html" },
     { "route": "/terms", "rewrite": "/terms/index.html" },
-    { "route": "/404", "rewrite": "/404/index.html", "statusCode": 404 },
+    { "route": "/404", "rewrite": "/404/index.html" },
     { "route": "/index.html", "headers": { "Cache-Control": "no-cache, must-revalidate" } },
     { "route": "/manifest.webmanifest", "headers": { "Cache-Control": "public, max-age=3600, must-revalidate" } }
   ]
