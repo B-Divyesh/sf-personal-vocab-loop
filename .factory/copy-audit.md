@@ -13,6 +13,9 @@ No sentence exceeds 22 words, and no banned marketing terms appear.
 | Write the word in a sentence you would actually use. | 10 |
 | Say it once; save a voice cue of up to 10 seconds. | 11 |
 | Recall it after 1, 3, 7, 14 and 30 days. | 10 |
+| Made for your own words. | 5 |
+| Original generated illustration. | 3 |
+| Built by Param Factory. | 4 |
 
 ## Terminology
 
