@@ -1,45 +1,46 @@
-# Personal Vocab Loop — review 3 handoff
+# Personal Vocab Loop — review 4 handoff
 
 ## Status
 
-Independent adversarial review 3 passed. No product code was changed.
+**FAIL.** Independent review 4 found one major plain-words defect and zero
+untested claims. No product code was changed.
 
 ## What was done
 
-- Reviewed the live site cold at 390×844 and desktop before scrolling.
-- Exercised the one-click demo, Reset, Recall, Start for real, same-origin
-  traffic, and live offline recall.
-- Read the brief, design, claims, demo documentation, all earlier reviews,
-  polish reports, verification reports, and prior handoff.
-- Audited landing and README copy, claims coverage, routes, metadata, links,
-  focus/history behavior, visual identity, and AI leverage.
-- Wrote the complete report in `.factory/review-3.md`.
+- Reviewed the live site cold at 390×844 and 1440×900 before scrolling.
+- Exercised the one-click populated demo, voice playback, mutation, Reset,
+  persistent demo banner, Start for real, real-data isolation, keyboard use,
+  invalid and boundary inputs, import recovery, and live offline recall.
+- Checked all routes, route titles, metadata, links, legal pages, designed 404,
+  focus, reduced motion, accessibility, privacy requests, response policy,
+  rate limiting, performance, and deployment identity.
+- Read and rechecked every earlier verification/review finding, including the
+  minor findings.
+- Wrote `.factory/review-4.md` and copied the QA result to `/work/.evidence/`.
+
+## Finding
+
+F-4-1: visible metaphor/mood copy remains. The root says “Your private
+language lab”; Capture says “New signal”; empty Recall says “Recall clear”; and
+Settings says “signal treatment.” This violates the explicit plain-words rule
+even though the job h1, audience, and first action are clear.
 
 ## Verification
 
-- Fresh clone: `/tmp/pvl-review3-clean.4WioYq/repo`.
-- `npm ci` and `npm run build` passed.
-- Every one of the 16 exact claim commands in `.factory/claims.json` passed
-  independently.
-- `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build` passed
-  from the clean clone.
-- Live browser checks found no console/page errors; the demo used only the
-  product origin and continued to reveal a sample sentence offline after its
-  first online visit.
+- Clean checkout: `/tmp/pvl-review4-clean.0WUrGL/repo`.
+- Implementation candidate: `0d3256f12cee8fbafdc856eaf8575935b7cc010b`.
+- Documentation baseline: `5fb7d97052cea8dec07c4fcd2660a9078ea9ec8f`.
+- `npm ci`: pass, zero reported vulnerabilities.
+- Every one of 16 exact `.factory/claims.json` commands: pass independently.
+- `npm test`: pass, Vitest 4/4 and Playwright 35/35.
+- `npm run typecheck`, `npm run lint`, `npm run build`: pass.
+- Live URL verifier and Axe route matrix: pass; zero Axe violations.
+- Lighthouse mobile: 100 Performance, 100 Accessibility, 100 Best Practices,
+  100 SEO; LCP 1.2 s, CLS 0, TBT 0 ms.
+- Live built assets match the clean candidate build byte-for-byte.
 
-## Run it
+## Next step
 
-```sh
-npm ci
-npm test
-npm run test:claims
-npm run typecheck
-npm run lint
-npm run build
-```
-
-Demo: <https://personal-vocab-loop.sociobot.in/?demo=1>.
-
-## Known gaps
-
-None found in review 3.
+Replace or remove the four metaphor/mood labels listed in F-4-1, update the
+copy audit, deploy, and repeat the cold live first-read check. No other product
+gap was found.
